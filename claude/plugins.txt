@@ -1,0 +1,16 @@
+# marketplace  github-repo  plugins (comma separated, or - for none)
+
+claude-plugins-official   anthropics/claude-plugins-official        explanatory-output-style,laravel-boost,php-lsp,frontend-design,swift-lsp,context7,playwright,figma
+superpowers-marketplace   obra/superpowers-marketplace              superpowers
+laravel                   laravel/claude-code                       laravel-simplifier
+karpathy-skills           forrestchang/andrej-karpathy-skills       andrej-karpathy-skills
+caveman                   JuliusBrussee/caveman                     caveman
+ponytail                  DietrichGebert/ponytail                   ponytail
+impeccable                pbakaus/impeccable                        impeccable
+ui-ux-pro-max-skill       nextlevelbuilder/ui-ux-pro-max-skill      ui-ux-pro-max
+gsap-skills               greensock/gsap-skills                     gsap-skills
+claude-code-workflows     wshobson/agents                           seo-technical-optimization
+agricidaniel-seo          AgriciDaniel/claude-seo                   claude-seo
+voltagent-subagents       VoltAgent/awesome-claude-code-subagents    voltagent-core-dev
+claude-hud                jarrodwatts/claude-hud                    -
+supermemory-plugins       supermemoryai/claude-supermemory          -
