@@ -1,0 +1,10 @@
+# macOS only. Casks do not exist on Linux Homebrew.
+
+tap "pol-rivero/tap"
+
+cask "ghostty"
+cask "zed"
+cask "pika"
+cask "vlc"
+cask "pol-rivero/tap/desktop-plus"
+cask "font-jetbrains-mono-nerd-font"

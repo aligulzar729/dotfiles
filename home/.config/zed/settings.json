@@ -1,0 +1,241 @@
+{
+  "cli_default_open_behavior": "new_window",
+  "git_panel": {
+    "dock": "right"
+  },
+  "base_keymap": "JetBrains",
+  "title_bar": {
+    "show_branch_status_icon": true
+  },
+  "active_pane_modifiers": {
+    "inactive_opacity": 0.8,
+    "border_size": 5.0
+  },
+  "agent_servers": {
+    "opencode": {
+      "type": "registry"
+    },
+    "claude-acp": {
+      "type": "registry"
+    }
+  },
+  "ui_font_family": "JetBrainsMonoNL Nerd Font",
+  "icon_theme": "Catppuccin Mocha",
+  "agent": {
+    "dock": "left",
+    "favorite_models": [],
+    "inline_assistant_model": {
+      "provider": "copilot_chat",
+      "model": "gpt-5-mini",
+      "enable_thinking": false
+    },
+    "model_parameters": []
+  },
+  "auto_install_extensions": {
+    "php": true,
+    "blade": true,
+    "env": true,
+    "tailwindcss": true
+  },
+  "theme": {
+    "mode": "dark",
+    "light": "One Light",
+    "dark": "Catppuccin Mocha"
+  },
+  "buffer_font_family": "JetBrainsMonoNL Nerd Font",
+  "buffer_font_size": 14,
+  "ui_font_size": 15.0,
+  "tab_size": 4,
+  "hard_tabs": false,
+  "soft_wrap": "editor_width",
+  "show_whitespaces": "selection",
+  "remove_trailing_whitespace_on_save": true,
+  "ensure_final_newline_on_save": true,
+  "format_on_save": "on",
+  "formatter": {
+    "external": {
+      "command": "bash",
+      "arguments": [
+        "-c",
+        "cat > {buffer_path} && ./vendor/bin/pint --quiet {buffer_path} && cat {buffer_path}"
+      ]
+    }
+  },
+  "languages": {
+    "PHP": {
+      "tab_size": 4,
+      "hard_tabs": false,
+      "format_on_save": "on",
+      "formatter": {
+        "external": {
+          "command": "bash",
+          "arguments": [
+            "-c",
+            "cat > {buffer_path} && ./vendor/bin/pint --quiet {buffer_path} && cat {buffer_path}"
+          ]
+        }
+      },
+      "language_servers": ["phpantom", "!intelephense", "!phpactor", "!phptools", "..."]
+    },
+    "Blade": {
+          "tab_size": 4,
+          "hard_tabs": false
+        },
+    "JavaScript": {
+      "tab_size": 4,
+      "format_on_save": "on"
+    },
+    "TypeScript": {
+      "tab_size": 4,
+      "format_on_save": "on"
+    },
+    "Vue.js": {
+      "tab_size": 4,
+      "format_on_save": "on"
+    },
+    "CSS": {
+      "tab_size": 4,
+      "format_on_save": "on"
+    },
+    "JSON": {
+      "tab_size": 4,
+      "format_on_save": "on"
+    }
+  },
+  "lsp": {
+    "intelephense": {
+      "settings": {
+        "intelephense.files.associations": ["*.php", "*.blade.php"],
+        "intelephense.environment.phpVersion": "8.4.0",
+        "intelephense.stubs": [
+          "apache",
+          "bcmath",
+          "bz2",
+          "calendar",
+          "com_dotnet",
+          "Core",
+          "ctype",
+          "curl",
+          "date",
+          "dba",
+          "dom",
+          "enchant",
+          "exif",
+          "FFI",
+          "fileinfo",
+          "filter",
+          "fpm",
+          "ftp",
+          "gd",
+          "gettext",
+          "gmp",
+          "hash",
+          "iconv",
+          "imap",
+          "intl",
+          "json",
+          "ldap",
+          "libxml",
+          "mbstring",
+          "meta",
+          "mysqli",
+          "oci8",
+          "odbc",
+          "openssl",
+          "pcntl",
+          "pcre",
+          "PDO",
+          "pdo_ibm",
+          "pdo_mysql",
+          "pdo_pgsql",
+          "pdo_sqlite",
+          "pgsql",
+          "Phar",
+          "posix",
+          "pspell",
+          "readline",
+          "Reflection",
+          "session",
+          "shmop",
+          "SimpleXML",
+          "snmp",
+          "soap",
+          "sockets",
+          "sodium",
+          "SPL",
+          "sqlite3",
+          "standard",
+          "superglobals",
+          "sysvmsg",
+          "sysvsem",
+          "sysvshm",
+          "tidy",
+          "tokenizer",
+          "xml",
+          "xmlreader",
+          "xmlrpc",
+          "xmlwriter",
+          "xsl",
+          "Zend OPcache",
+          "zip",
+          "zlib"
+        ]
+      }
+    }
+  },
+  "file_types": {
+    "Blade": ["blade.php"],
+    "Dockerfile": ["Dockerfile", "Dockerfile.*"]
+  },
+  "git": {
+    "git_gutter": "tracked_files",
+    "inline_blame": {
+      "enabled": true,
+      "delay_ms": 600
+    }
+  },
+  "terminal": {
+    "shell": {
+      "program": "/bin/zsh"
+    },
+    "font_family": "JetBrainsMonoNL Nerd Font",
+    "font_size": 14,
+    "working_directory": "current_project_directory"
+  },
+  "project_panel": {
+    "dock": "right",
+    "default_width": 240
+  },
+  "outline_panel": {
+    "dock": "right",
+    "default_width": 240
+  },
+  "collaboration_panel": {
+    "dock": "right"
+  },
+  "tabs": {
+    "close_position": "right",
+    "file_icons": true,
+    "git_status": true
+  },
+  "scrollbar": {
+    "show": "always",
+    "git_diff": true
+  },
+  "vertical_scroll_margin": 3,
+  "relative_line_numbers": "disabled",
+  "seed_search_query_from_cursor": "always",
+  "show_completions_on_input": true,
+  "show_completion_documentation": true,
+  "edit_predictions": {
+    "provider": "copilot",
+    "disabled_globs": [".env"]
+  },
+  "telemetry": {
+    "diagnostics": true,
+    "metrics": true
+  },
+  "vim_mode": false,
+  "autosave": "on_focus_change",
+  "auto_update": true,
+}

@@ -1,0 +1,62 @@
+# Copy to ~/.zshrc.local. Never committed. Secrets and per-machine paths only.
+
+# export DOTFILES_DIR="$HOME/code/dotfiles"
+# export EDITOR="zed --wait"
+# alias os='orb start'
+
+# Secrets. Prefer the keychain over plaintext:
+#   security add-generic-password -a "$USER" -s ANTHROPIC_API_KEY -w
+#   export ANTHROPIC_API_KEY="$(security find-generic-password -a "$USER" -s ANTHROPIC_API_KEY -w)"
+# export ANTHROPIC_API_KEY=""
+# export APPLE_ID=""
+# export APPLE_ID_PASSWORD=""
+# export APPLE_TEAM_ID=""
+
+# Laravel Herd, macOS only
+# export HERD_PHP_84_INI_SCAN_DIR="$HOME/Library/Application Support/Herd/config/php/84/"
+# export NVM_DIR="$HOME/Library/Application Support/Herd/config/nvm"
+# [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+# [ -f "/Applications/Herd.app/Contents/Resources/config/shell/zshrc.zsh" ] \
+#   && source "/Applications/Herd.app/Contents/Resources/config/shell/zshrc.zsh"
+# export PATH="$HOME/Library/Application Support/Herd/bin/:$PATH"
+
+# Android + Java
+# export JAVA_HOME="$(brew --prefix openjdk@17)/libexec/openjdk.jdk/Contents/Home"
+# export ANDROID_HOME="$HOME/Library/Android/sdk"
+# export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+
+# Toolchains
+# [ -s "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+# export BUN_INSTALL="$HOME/.bun"; export PATH="$BUN_INSTALL/bin:$PATH"
+# export PATH="$PATH:/usr/local/go/bin:$HOME/go/bin"
+
+# Extra PATH entries
+# export PATH="$HOME/.lmstudio/bin:$PATH"
+# export PATH="$HOME/.opencode/bin:$PATH"
+# export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
+# export PATH="$HOME/.antigravity-ide/antigravity-ide/bin:$PATH"
+# export PATH="$HOME/.termcast/compiled/tuitube/bin:$PATH"
+
+# grok CLI
+# export PATH="$HOME/.grok/bin:$PATH"
+# fpath=(~/.grok/completions/zsh $fpath)
+# autoload -Uz compinit && compinit -C
+
+# [ -f "$HOME/.jetbrains.vmoptions.sh" ] && . "$HOME/.jetbrains.vmoptions.sh"
+
+# claude-auto-retry. The unalias is needed or the function below fails to parse.
+# unalias claude 2>/dev/null || true
+# claude() {
+#   if [ "${CLAUDE_AUTO_RETRY_ACTIVE}" = "1" ]; then
+#     command claude "$@"; return $?
+#   fi
+#   export CLAUDE_AUTO_RETRY_ACTIVE=1
+#   local _old_int _old_term
+#   _old_int=$(trap -p INT); _old_term=$(trap -p TERM)
+#   trap 'unset CLAUDE_AUTO_RETRY_ACTIVE' INT TERM
+#   node "$HOME/.local/lib/node_modules/claude-auto-retry/src/launcher.js" "$@"
+#   local _rc=$?
+#   unset CLAUDE_AUTO_RETRY_ACTIVE
+#   eval "${_old_int:-trap - INT}"; eval "${_old_term:-trap - TERM}"
+#   return $_rc
+# }

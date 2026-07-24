@@ -1,0 +1,299 @@
+#!/bin/sh
+
+version_number="1.2.1"
+
+repo="https://raw.githubusercontent.com/synacktraa/ani-skip/master"
+agent="Mozilla/5.0 (Windows NT 6.1; Win64; rv:109.0) Gecko/20100101 Firefox/109.0"
+allanime_api="https://api.allanime.day/api"
+
+chapter_format="\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=%s\nEND=%s\nTITLE=%s\n"
+option_format="skip-%s_start=%s,skip-%s_end=%s" 
+
+die() {
+    printf "\33[2K\r\033[1;31m%s\033[0m\n" "$*" >&2
+    exit 1
+}
+
+help_info() {
+    printf "
+    Usage:
+    %s [OPTIONS]
+
+    Options:
+      -q, --query
+        Search query for anime title
+      -i, --id
+        Direct source ID (MyAnimeList or AllAnime ID)
+      -e, --episode
+        Specify the episode number
+      -s, --source
+        Source for ID/query resolution (myanimelist, allanime). 
+        [default: myanimelist]
+      -f, --filter
+        Regex to filter search results for disambiguation (used with -q)
+      --toggle
+        Enable keybind in mpv to toggle skipping on/off.
+        When enabled, skips always while active (default: skip once).
+        [default key: 'T' (shift+t), set ANI_SKIP_TOGGLE_KEY to customize]
+      -o, --offset <seconds>
+        End skip N seconds early to avoid missing episode content
+        [max: 5, default: 0]
+      -V, --version
+        Show the version of the script
+      -h, --help
+        Show this help message and exit
+      -U, --update
+        Update to the latest version
+
+    Either -q or -i is required.
+
+    Some example usages:
+      %s -i 52299 -e 5 # MAL ID directly
+      %s -i \"ReooPAxPMsHM4KPMY\" -s allanime -e 12 # AllAnime ID directly
+      %s -q \"Solo Leveling\" -e 3 # Search MAL (default)
+      %s -q \"one piece\" -s allanime -f \"^1P$\" -e 12 # Search AllAnime with filter
+      %s -q \"Solo Leveling\" -s allanime -f \"Season 2\" -e 1 # Season disambiguation
+    \n" "${0##*/}" "${0##*/}" "${0##*/}" "${0##*/}" "${0##*/}" "${0##*/}"
+    exit 0
+}
+
+update_script() {
+    update="$(curl -s -A "$agent" "$repo/ani-skip")" || die "Connection error"
+    update="$(printf '%s\n' "$update" | diff -u "$0" -)"
+    if [ -z "$update" ]; then
+        printf "Script is up to date :)\n"
+    else
+        if printf '%s\n' "$update" | patch "$0" -; then
+            printf "Script has been updated\n"
+        else
+            die "Can't update for some reason!"
+        fi
+    fi
+
+    # Fetch and execute integrations update script
+    integrations_update="$(curl -s -A "$agent" "$repo/integrations/update")" || die "Connection error"
+    eval "$integrations_update"
+
+    exit 0
+}
+
+fetch_mal_id_myanimelist() {
+    #shellcheck disable=SC2016
+    : '
+    `fetch_mal_id_myanimelist` fetches MyAnimeList Identifier using MAL search
+    :param $1: search query
+    '
+    name=$(printf "%s" "$*" | sed 's| (\([0-9]*\) episodes)||')
+    keyword=$(printf "%s" "$name" | tr -c '[:alnum:]' ' ' | sed -E 's| |%20|g')
+    mal_metadata=$(curl -sL -A "$agent" "https://myanimelist.net/search/prefix.json?type=anime&keyword=$keyword" | tr -d "\\" 2>/dev/null)
+    name=$(printf "%s\n" "$name" | tr -cs '[:print:]' ' ' | tr -c '[:alnum:]' ' ')
+    fzf_nth=$(printf "%s," $(seq 1 "$(printf "%s" "$name" | wc -w)") | sed 's|,$||')
+    results=$(printf "%s" "$mal_metadata" | sed 's|},{|\n|g' | sed 's|.*,"name":"||g ; s|","url":".*||g')
+    relevant_name=""
+    if [ -n "$filter" ]; then
+        relevant_name=$(printf "%s" "$results" | grep -E "$filter" | head -n1)
+    fi
+    if [ -z "$relevant_name" ]; then
+        relevant_name=$(printf "%s" "$results" | fzf -i --filter="$name" --nth="$fzf_nth" | head -n1)
+        [ -z "$relevant_name" ] && relevant_name=$(printf "%s" "$results" | fzf -i --filter="$name" | head -n1)
+        [ -z "$relevant_name" ] && relevant_name=$(printf "%s" "$results" | head -n1)
+    fi
+    printf "%s" "$mal_metadata" | sed 's|},{|\n|g' | grep 'name":"'"$relevant_name"'","url":' | sed -nE 's|.*"id":([0-9]{1,9}),.*|\1|p'
+}
+
+fetch_mal_id_allanime() {
+    #shellcheck disable=SC2016
+    : '
+    `fetch_mal_id_allanime` fetches MyAnimeList Identifier using AllAnime
+    :param $1: search query
+    '
+    search_query='query($search:SearchInput $limit:Int $page:Int $translationType:VaildTranslationTypeEnumType $countryOrigin:VaildCountryOriginEnumType){shows(search:$search limit:$limit page:$page translationType:$translationType countryOrigin:$countryOrigin){edges{_id name}}}'
+    keyword=$(printf "%s" "$*" | sed 's| (\([0-9]*\) episodes)||')
+    variables="{\"search\":{\"query\":\"$keyword\"},\"limit\":10,\"page\":1,\"translationType\":\"sub\",\"countryOrigin\":\"ALL\"}"
+
+    search_result=$(curl -s "$allanime_api" \
+        -H "User-Agent: $agent" \
+        -H "Content-Type: application/json" \
+        --data-raw "{\"query\":\"$search_query\",\"variables\":$variables}")
+
+    # Extract _id and name pairs (one per line: _id\tname)
+    pairs=$(printf "%s" "$search_result" | sed 's|},{|\n|g' | sed -nE 's|.*"_id":"([^"]+)","name":"([^"]+)".*|\1\t\2|p')
+
+    [ -z "$pairs" ] && die "No results found on AllAnime!"
+
+    names=$(printf "%s" "$pairs" | cut -f2)
+    if [ -n "$filter" ]; then
+        relevant_name=$(printf "%s" "$names" | grep -E "$filter" | head -n1)
+    fi
+    if [ -z "$relevant_name" ]; then
+        name=$(printf "%s" "$keyword" | tr -cs '[:print:]' ' ' | tr -c '[:alnum:]' ' ')
+        relevant_name=$(printf "%s" "$names" | fzf -i --filter="$name" | head -n1)
+        [ -z "$relevant_name" ] && relevant_name=$(printf "%s" "$names" | head -n1)
+    fi
+    matched=$(printf "%s" "$pairs" | awk -F'\t' -v name="$relevant_name" '$2 == name' | head -n1)
+    # Fall back to substring match if exact match fails
+    [ -z "$matched" ] && matched=$(printf "%s" "$pairs" | grep "$relevant_name" | head -n1)
+
+    allanime_id=$(printf "%s" "$matched" | cut -f1)
+    [ -z "$allanime_id" ] && die "Could not match anime on AllAnime!"
+
+    resolve_id_allanime "$allanime_id"
+}
+
+resolve_id_allanime() {
+    #shellcheck disable=SC2016
+    : '
+    `resolve_id_allanime` fetches MyAnimeList Identifier using AllAnime show ID
+    :param $1: AllAnime show _id
+    '
+    curl -s "$allanime_api" \
+        -H "User-Agent: $agent" \
+        -H "Content-Type: application/json" \
+        --data-raw "{\"query\":\"{ show(_id: \\\"$1\\\") { malId } }\"}" \
+        | sed -n 's/.*"malId":"\([0-9]*\)".*/\1/p'
+}
+
+ftoi() {
+    printf "%.3f" "$1" | tr -d '.'
+}
+
+build_options() {
+    #shellcheck disable=SC2016
+    : '
+    `build_options` builds options for `--script-opts` flag
+    :param $1: AniSkip metadata
+    '
+    st_time_re='"start_time":([0-9.]+)'
+    ed_time_re='"end_time":([0-9.]+)'
+    op_end=""
+    ed_start=""
+    options=""
+    
+    for skip_type in "op" "ed"
+    do
+        sk_type_re='"skip_type":"('$skip_type')"'
+        unformatted=$(printf "%s" "$1" | grep -Eo "$st_time_re,$ed_time_re},$sk_type_re")
+        if [ -n "$unformatted" ]; then
+            st_time=$(printf "%s" "$unformatted" | grep -Eo "$st_time_re" | sed -E 's@'"$st_time_re"'@\1@')
+            ed_time=$(printf "%s" "$unformatted" | grep -Eo "$ed_time_re" | sed -E 's@'"$ed_time_re"'@\1@')
+
+            [ "$skip_type" = "op" ] && op_end=$ed_time && ch_name="Opening"
+            [ "$skip_type" = "ed" ] && ed_start=$st_time && ch_name="Ending"
+            [ -n "$options" ] && options="$options,"
+
+            printf "$chapter_format" "$(ftoi $st_time)" "$(ftoi $ed_time)" "$ch_name" >> $chapters_file
+            options=$(printf "%s%s" "$options" $(printf "$option_format" "$skip_type" "$st_time" "$skip_type" "$ed_time"))
+
+        fi
+    done
+
+    if [ -n "$op_end" ]; then
+        [ -n "$ed_start" ] && ep_ed=$ed_start || ep_ed=$op_end
+        printf "$chapter_format" "$(ftoi $op_end)" "$(ftoi $ep_ed)" "Episode" >> $chapters_file
+    fi
+
+    printf "%s" "$options"
+}
+
+build_flags() {
+    #shellcheck disable=SC2016
+    : '
+    `build_flags` builds `--script-opts` and `--chapters-file` flags for MPV player
+    :param $1: MyAnimeList Identifier
+    :param $2: Episode number
+    '
+    aniskip_api="https://api.aniskip.com/v1/skip-times/$1/$2?types=op&types=ed"
+    metadata=$(curl -s --connect-timeout 5 -A "$agent" "$aniskip_api")
+    
+    found_status=$(printf "%s" "$metadata" | sed -n 's/.*"found":\([^,]*\).*/\1/p')
+    [ "$found_status" != "true" ] && die "Skip times not found!"
+
+    printf "%s" ";FFMETADATA1" > "$chapters_file"
+    options=$(build_options "$metadata")
+    [ "$toggle" = 1 ] && options="$options,skip-toggle=yes,skip-toggle_key=$toggle_key"
+    [ "$offset" -gt 0 ] && options="$options,skip-offset=$offset"
+    [ -n "$options" ] && printf -- "--chapters-file=%s --script-opts=%s" "$chapters_file" "$options"
+}
+
+source="myanimelist"
+filter=""
+toggle=0
+toggle_key="${ANI_SKIP_TOGGLE_KEY:-T}"
+offset=0
+
+[ $# -eq 0 ] && help_info
+while [ $# -gt 0 ]; do
+    [ "$OSTYPE" = msys* ] && flag=${1//[![:print:]]/} || flag="$1"
+    case "$flag" in
+        -U | --update) update_script ;;
+        -V | --version) printf "%s\n" "$version_number" && exit 0 ;;
+        -h | --help) help_info ;;
+        -q | --query)
+            [ $# -lt 2 ] && die "missing search query!"
+            query=$2
+            shift
+            ;;
+        -i | --id)
+            [ $# -lt 2 ] && die "missing source ID!"
+            source_id=$2
+            shift
+            ;;
+        -e | --episode)
+            [ $# -lt 2 ] && die "missing episode number!"
+            case $2 in
+                ''|*[!0-9]*) die "value must be a number!" ;;
+                *) episode=$2 ;;
+            esac
+            shift
+            ;;
+        -s | --source)
+            [ $# -lt 2 ] && die "missing source!"
+            case $2 in
+                myanimelist|allanime) source=$2 ;;
+                *) die "invalid title source '$2'! Use: myanimelist, allanime" ;;
+            esac
+            shift
+            ;;
+        -f | --filter)
+            [ $# -lt 2 ] && die "missing filter!"
+            filter=$2
+            shift
+            ;;
+        --toggle) toggle=1 ;;
+        -o | --offset)
+            [ $# -lt 2 ] && die "missing offset value!"
+            case $2 in
+                ''|*[!0-9]*) die "offset must be a number!" ;;
+                *) [ "$2" -gt 5 ] && die "offset cannot be more than 5 seconds!" ; offset=$2 ;;
+            esac
+            shift
+            ;;
+    esac
+    shift
+done
+
+# Resolve to MAL ID
+if [ -n "$source_id" ]; then
+    case "$source" in
+        allanime) mal_id=$(resolve_id_allanime "$source_id") ;;
+        myanimelist) mal_id=$source_id ;;
+    esac
+elif [ -n "$query" ]; then
+    case "$query" in
+        *[!0-9]*) mal_id=$(fetch_mal_id_"$source" $query) ;;
+        *)
+            printf "\033[1;33mWarning: passing MAL ID via -q is deprecated, use -i instead\033[0m\n" >&2
+            mal_id=$query
+            ;;
+    esac
+else
+    die "-q/--query or -i/--id is required!"
+fi
+
+[ -z "$mal_id" ] && die "Could not find MAL ID!"
+if [ -z "$episode" ]; then
+    printf "%s" "$mal_id"
+else
+    chapters_file=$(mktemp)
+    build_flags $mal_id $episode
+fi
