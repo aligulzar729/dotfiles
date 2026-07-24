@@ -33,6 +33,11 @@ fpath+=${ZSH_CUSTOM:-$ZSH/custom}/plugins/zsh-completions/src
 
 source $ZSH/oh-my-zsh.sh
 
+# The laravel plugin aliases artisan to `php artisan`, which shadows the smarter
+# artisan plugin function (sail/vendor detection + completion). Drop the alias so
+# the function wins. `pa` already covers plain `php artisan`.
+unalias artisan 2>/dev/null
+
 
 # Aliases
 
@@ -81,6 +86,10 @@ alias zshconfig='${EDITOR:-vi} ~/.zshrc'
 
 
 # Functions
+
+# These were aliases in older setups. Drop any stale alias first so re-sourcing
+# (reloadcli) can redefine them as functions instead of erroring.
+unalias rmlogs rmlp 2>/dev/null
 
 rmlogs() {
   local log_path="${1:-storage/logs/laravel.log}"
