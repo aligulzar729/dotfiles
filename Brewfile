@@ -20,6 +20,9 @@ brew "tealdeer"
 brew "glow"
 brew "yazi"
 
-brew "ani-cli"        # ani-skip is vendored in home/.local/bin (no formula)
+# ani-cli deps. ani-cli itself is fetched by the installer (it self-updates);
+# ani-skip is vendored in home/.local/bin.
+brew "mpv"           # player
+brew "botan"         # crypto lib ani-cli uses
 
 brew "mailpit"

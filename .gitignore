@@ -19,3 +19,7 @@ home/.config/zed/prompts/
 home/.config/zed/conversations/
 home/.config/zed/backup-*/
 home/.config/zed/settings_backup.json
+
+# ani-cli self-updates (ani-cli -U), so tracking it just churns. The installer
+# fetches the latest instead. ani-skip has no self-update and stays vendored.
+home/.local/bin/ani-cli

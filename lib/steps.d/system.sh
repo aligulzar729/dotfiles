@@ -39,9 +39,35 @@ _homebrew() {
 step_packages() {
   load_brew || { ui_warn "Homebrew missing, run the homebrew step first"; return 0; }
   task "CLI stack" _brew_bundle "$DOTFILES/Brewfile"
+  task "ani-cli"   _ani_cli
   if is_macos; then
+    task "Trust taps" _trust_taps "$DOTFILES/Brewfile.macos"
     task "macOS casks" _brew_bundle "$DOTFILES/Brewfile.macos"
   fi
+}
+
+# ani-cli self-updates and has no brew formula, so fetch the latest rather than
+# tracking a copy that churns. Skip if a real file is already there; leave
+# updates to `ani-cli -U`.
+_ani_cli() {
+  local dst="$HOME/.local/bin/ani-cli"
+  if [ -f "$dst" ] && [ ! -L "$dst" ]; then
+    task_skip "already installed (update with: ani-cli -U)"
+    return 0
+  fi
+  mkdir -p "$HOME/.local/bin"
+  rm -f "$dst"
+  curl -fsSL -o "$dst" https://raw.githubusercontent.com/pystardust/ani-cli/master/ani-cli
+  chmod +x "$dst"
+}
+
+# brew refuses casks from third-party taps until they are trusted. Trust every
+# tap the Brewfile declares so the bundle below does not stop on the prompt.
+_trust_taps() {
+  local file="$1" tap
+  while read -r tap; do
+    [ -n "$tap" ] && brew trust "$tap" >/dev/null 2>&1 || true
+  done < <(awk -F'"' '/^tap /{print $2}' "$file")
 }
 
 _brew_bundle() {

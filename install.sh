@@ -5,6 +5,14 @@
 #   ./install.sh link claude    run named steps
 #   ./install.sh --verbose zsh  show output instead of logging it
 
+# Re-exec under real bash. Launching via `sh install.sh` (or macOS /bin/sh,
+# which is bash in POSIX mode) disables arrays and process substitution, which
+# this script relies on. One guarded exec sidesteps all of that.
+if [ -z "${DOTFILES_REEXEC:-}" ]; then
+  export DOTFILES_REEXEC=1
+  exec bash "$0" "$@"
+fi
+
 set -uo pipefail
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
