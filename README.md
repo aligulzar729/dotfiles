@@ -39,7 +39,7 @@ machines.
 | Dev | git, gh, lazygit, git-delta, mailpit |
 | Apps | Ghostty, Zed, Pika, VLC, GitHub Desktop Plus, JetBrainsMono Nerd Font |
 | Configs | zsh, git (delta), ssh (template), starship, atuin, eza, ghostty, Zed |
-| Claude Code | CLI, 14 marketplaces, 19 plugins, 18 skills |
+| Claude Code | CLI, 14 marketplaces, 19 plugins, 25 skills (5 local, 20 from skills.txt) |
 | omz plugins | zsh-autosuggestions, zsh-syntax-highlighting, zsh-history-substring-search, zsh-completions, artisan |
 
 ## The dots command
@@ -87,7 +87,8 @@ Brewfile                CLI stack, all platforms
 Brewfile.macos          casks and fonts
 home/                   mirrors ~, everything in here gets symlinked
 claude/plugins.txt      marketplace to plugin manifest
-claude/skills/          18 skills, each linked into ~/.claude/skills
+claude/skills.txt       third-party skills, installed with the skills CLI
+claude/skills/          5 skills written here, each linked into ~/.claude/skills
 ```
 
 Three layers, one job each. UI never installs, steps never print. Every action
@@ -153,16 +154,22 @@ misbehave across the Windows mount and this repo is all symlinks.
 
 ## Notes
 
-- Skills are linked one by one into `~/.claude/skills`, so other skills already
-  on the machine stay put. A real directory in the way is backed up to
-  `<name>.bak`. `impeccable` and `ui-ux-pro-max` are not here because they are
-  plugins installed from their own repos, carried by `plugins.txt` instead.
+- Skills split two ways. Anything written here lives in `claude/skills/` and is
+  linked one by one into `~/.claude/skills`, so other skills already on the
+  machine stay put; a real directory in the way is backed up to `<name>.bak`.
+  Everything from someone else's repo is listed in `skills.txt` and installed
+  with `npx skills`, so `npx skills update` pulls upstream fixes instead of this
+  repo carrying a stale copy. `impeccable` and `ui-ux-pro-max` are neither, they
+  are plugins from their own repos, carried by `plugins.txt`.
 - Zed's config is symlinked file by file, so changing settings in the Zed UI
   edits the repo. If an update ever replaces a symlink with a real file, run
   `dots link`.
 - Zed's `prompts/` is not versioned. It is an LMDB database with a lock file,
   git cannot merge it.
 - `$EDITOR` is `zed --wait` when Zed is on PATH. Override in `~/.zshrc.local`.
+- Installers that append to `~/.zshrc` (Laravel Herd does this on every update)
+  write into the tracked file, because `~/.zshrc` is a symlink into this repo.
+  Move what they added to `~/.zshrc.local` and `git checkout home/.zshrc`.
 - Linux gets Ghostty from the distro repo where one exists (Arch, Fedora),
   otherwise the installer prints the download URL.
 - Needs bash 3.2, so it runs on stock macOS.

@@ -1,4 +1,4 @@
-# Claude Code: the CLI, skills, and the marketplaces/plugins in plugins.txt.
+# Claude Code: the CLI, the skills in skills.txt, and the marketplaces/plugins in plugins.txt.
 
 register claude "Claude Code           (marketplaces, plugins, skills)"
 
@@ -17,7 +17,17 @@ step_claude() {
     task "skill: $name" ensure_link "${skill%/}" "$HOME/.claude/skills/$name"
   done
 
-  local market repo plugin_list
+  local repo skill_list
+  if has npx; then
+    while read -r repo skill_list; do
+      case "$repo" in ''|\#*) continue ;; esac
+      task "skills: $repo" _claude_skills "$repo" "$skill_list"
+    done < "$DOTFILES/claude/skills.txt"
+  else
+    ui_warn "npx not on PATH, skipping third-party skills"
+  fi
+
+  local market plugin_list
   while read -r market repo plugin_list; do
     case "$market" in ''|\#*) continue ;; esac
     task "marketplace: $market" _claude_market "$market" "$repo" "$plugin_list"
@@ -31,6 +41,23 @@ _claude_cli() {
   fi
   curl -fsSL https://claude.ai/install.sh | bash
   export PATH="$HOME/.local/bin:$PATH"
+}
+
+# Third-party skills come from their own repos via the skills CLI, so updates are
+# `npx skills update` instead of re-vendoring the files into this repo.
+_claude_skills() {
+  local repo="$1" skill_list="$2" skill
+  local -a args=()
+
+  if [ "$skill_list" = "*" ]; then
+    args=(--skill '*')
+  else
+    local IFS=','
+    for skill in $skill_list; do args+=(-s "$skill"); done
+    unset IFS
+  fi
+
+  npx -y skills@latest add "$repo" -g -a claude-code "${args[@]}" -y
 }
 
 _claude_market() {
