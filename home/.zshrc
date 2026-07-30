@@ -69,7 +69,7 @@ alias pam='php artisan migrate'
 alias paoc='php artisan optimize:clear'
 alias pint='./vendor/bin/pint'
 alias pest='./vendor/bin/pest'
-alias patc='pest --parallel --bail --coverage --recreate-databases'
+alias patc='pest --parallel --bail --coverage --recreate-databases --tia'
 alias patr='pest --bail --profile'
 
 alias nd='npm run dev'
@@ -82,14 +82,16 @@ alias dcu='docker compose up -d'
 alias dcd='docker compose down'
 
 alias reloadcli='source ~/.zshrc'
-alias zshconfig='${EDITOR:-vi} ~/.zshrc'
 
 
 # Functions
 
 # These were aliases in older setups. Drop any stale alias first so re-sourcing
 # (reloadcli) can redefine them as functions instead of erroring.
-unalias rmlogs rmlp 2>/dev/null
+unalias rmlogs rmlp zshconfig 2>/dev/null
+
+# paints the whole thing red.
+zshconfig() { ${=EDITOR:-vi} ~/.zshrc }
 
 rmlogs() {
   local log_path="${1:-storage/logs/laravel.log}"
@@ -127,7 +129,10 @@ y() {
 export DOTFILES_DIR="${DOTFILES_DIR:-$HOME/Projects/dotfiles}"
 
 dots() {
-  local repo="$DOTFILES_DIR" ed="${EDITOR:-vi}" cmd="${1:-cd}"
+  local repo="$DOTFILES_DIR" cmd="${1:-cd}"
+  # zsh does not word-split unquoted scalars, so a scalar ed="zed --wait" would
+  # be looked up as one command name. ${=...} splits it into an array instead.
+  local -a ed=( ${=EDITOR:-vi} )
   [[ -d "$repo" ]] || { print -u2 "dots: $repo not found"; return 1; }
   shift 2>/dev/null
 
@@ -151,7 +156,7 @@ dots() {
 
     install|run)       "$repo/install.sh" "$@" ;;
     link)              "$repo/install.sh" link ;;
-    log)               ${PAGER:-less} "${TMPDIR:-/tmp}/dotfiles-install.log" ;;
+    log)               ${=PAGER:-less} "${TMPDIR:-/tmp}/dotfiles-install.log" ;;
     status|st)         git -C "$repo" status --short ;;
     diff)              git -C "$repo" diff ;;
 

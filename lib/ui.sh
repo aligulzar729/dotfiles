@@ -16,9 +16,9 @@ fi
 
 UI_OK="✓"; UI_SKIP="·"; UI_FAIL="✗"; UI_WARN="!"
 
-ui_cursor_hide() { [ "$UI_TTY" = 1 ] && printf '\033[?25l'; return 0; }
-ui_cursor_show() { [ "$UI_TTY" = 1 ] && printf '\033[?25h'; return 0; }
-ui_clear_line()  { [ "$UI_TTY" = 1 ] && printf '\r\033[2K'; return 0; }
+ui_cursor_hide() { [ "$UI_TTY" = 1 ] && printf '\033[?25l' >&2; return 0; }
+ui_cursor_show() { [ "$UI_TTY" = 1 ] && printf '\033[?25h' >&2; return 0; }
+ui_clear_line()  { [ "$UI_TTY" = 1 ] && printf '\r\033[2K' >&2; return 0; }
 
 ui_banner() {
   printf '\n%s┌───────────────────────────────────────────────┐%s\n' "$C_BLU" "$C_OFF"
@@ -60,9 +60,11 @@ ui_spin_start() {
 
 ui_spin_stop() {
   [ -n "$_ui_spin_pid" ] || return 0
-  kill "$_ui_spin_pid" 2>/dev/null || true
-  wait "$_ui_spin_pid" 2>/dev/null || true
+  local pid="$_ui_spin_pid"
+  # Clear first: this also runs as a signal handler, so a second signal landing
+  # mid-function must find nothing left to do.
   _ui_spin_pid=""
+  kill "$pid" 2>/dev/null || true
   ui_clear_line
   ui_cursor_show
 }

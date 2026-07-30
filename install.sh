@@ -21,7 +21,10 @@ DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$DOTFILES/lib/core.sh"
 . "$DOTFILES/lib/steps.sh"
 
-trap 'ui_spin_stop; ui_cursor_show' EXIT INT TERM
+trap 'ui_spin_stop; ui_cursor_show' EXIT
+# Separate from EXIT so Ctrl-C actually stops the run; the old shared handler
+# returned and let the next step start.
+trap 'ui_spin_stop; ui_cursor_show; exit 130' INT TERM
 
 VERBOSE=0
 ASSUME_YES=0
@@ -62,6 +65,9 @@ while [ $# -gt 0 ]; do
 done
 
 detect_platform
+# The re-exec above is a non-login, non-interactive bash: it reads no .zshrc,
+# .zprofile or .bash_profile, so brew is only on PATH if the caller had it.
+load_brew >/dev/null 2>&1 || true
 ui_banner
 ui_meta "platform" "$OS ($ARCH)"
 ui_meta "packages" "${PKG:-homebrew only}"
