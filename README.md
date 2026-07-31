@@ -3,7 +3,7 @@
 Same shell setup on every machine. macOS, Linux, WSL.
 
 ```sh
-git clone aligulzar729/dotfiles ~/Projects/dotfiles
+git clone https://github.com/aligulzar729/dotfiles ~/Projects/dotfiles
 cd ~/Projects/dotfiles
 ./install.sh
 ```
