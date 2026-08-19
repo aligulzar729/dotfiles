@@ -37,8 +37,8 @@ machines.
 | Coreutils | eza, bat, ripgrep, fd |
 | Extras | tealdeer, glow, yazi, ani-cli + ani-skip |
 | Dev | git, gh, lazygit, git-delta, mailpit |
-| Apps | Ghostty, Zed, Pika, VLC, GitHub Desktop Plus, JetBrainsMono Nerd Font |
-| Configs | zsh, git (delta), ssh (template), starship, atuin, eza, ghostty, Zed |
+| Apps | Ghostty, Zed, Pika, VLC, Bitwarden, GitHub Desktop Plus, JetBrainsMono Nerd Font |
+| Configs | zsh, git (delta), ssh (+ Bitwarden agent), starship, atuin, eza, ghostty, Zed |
 | Claude Code | CLI, 14 marketplaces, 19 plugins, 25 skills (5 local, 20 from skills.txt) |
 | omz plugins | zsh-autosuggestions, zsh-syntax-highlighting, zsh-history-substring-search, zsh-completions, artisan |
 
@@ -57,6 +57,7 @@ dots starship    # prompt                  dots pull      # git pull + re-link
 dots ghostty     # terminal                dots push      # add + commit + push
 dots zed         # Zed settings            dots keymap    # Zed keybindings
 dots tasks       # Zed tasks               dots snippets  # Zed snippets
+dots ssh         # shared ssh defaults     dots hosts     # your servers (local)
 dots atuin / eza / steps / readme / help
 ```
 
@@ -70,6 +71,68 @@ dots push                  # share it
 
 Set `DOTFILES_DIR` in `~/.zshrc.local` if you clone somewhere else.
 
+## SSH across devices
+
+One key, one host list, every machine. The key lives in Bitwarden, not on disk,
+so a new device needs no new key and no server-side change.
+
+**Once, on this machine**
+
+1. Bitwarden → Settings → **Allow SSH agent**.
+2. Vault → New item → **SSH key** → *Import*, and paste an existing private key
+   (`~/.ssh/hub-devlab`). Or generate a fresh one in Bitwarden and run
+   `ssh-copy-id -f -i <pubkey> user@server` once per server.
+3. `./install.sh ssh`, then log in for real: `ssh myserver`. Bitwarden pops a
+   prompt to authorize the key. (`ssh-add -l` will not show it — `IdentityAgent`
+   applies to `ssh`, not to a bare `ssh-add`.)
+4. Delete the on-disk copies once a real login works.
+
+**On every other device**
+
+```sh
+# 1. Bitwarden: install, log in, Settings > Allow SSH agent
+# 2. dotfiles
+git clone https://github.com/aligulzar729/dotfiles ~/Projects/dotfiles
+cd ~/Projects/dotfiles && ./install.sh
+```
+
+When it reaches the `ssh` step and finds no server list, it stops and asks for
+one, printing the exact command for both ends. On a machine that already has
+the list:
+
+```sh
+pbcopy < ~/.ssh/config.d/10-servers.conf   # wl-copy or xclip on Linux
+```
+
+Paste that into the Notes field of your Bitwarden SSH key item. On the new
+machine, copy those Notes, paste at the prompt, press Ctrl-D.
+It validates the paste with `ssh -G` and discards anything that would not parse,
+so a mispaste cannot break ssh for every host. Ctrl-D on an empty prompt skips.
+
+No key generation, nothing added to any server. The step also detects that
+machine's Bitwarden socket, which differs between App Store, .dmg and Linux
+builds.
+
+Adding a server later: `dots hosts`, back the file up to the Bitwarden note
+again, then re-paste on the other machines.
+
+**Where things live**
+
+| File | What | Synced by |
+|---|---|---|
+| `~/.ssh/config` | include lines only | created by the `ssh` step |
+| `~/.ssh/config.d/00-agent.conf` | Bitwarden socket path | generated per machine |
+| `~/.ssh/config.d/10-*.conf` | your real servers | pasted from a Bitwarden note |
+| `~/.ssh/config.d/99-defaults.conf` | shared defaults | this repo, symlinked |
+
+Real hostnames never enter this repo, it is public. `ssh` reads
+`config.d/*.conf` in sorted order and is first-match-wins, hence the numbering:
+agent first, hosts next, catch-all last.
+
+`known_hosts` is deliberately not synced. It is a per-machine cache and it
+leaks your server list; `StrictHostKeyChecking accept-new` removes the
+first-connect prompt instead.
+
 ## Layout
 
 ```
@@ -82,6 +145,7 @@ lib/steps.d/
   apps.sh               Ghostty, Zed, GitHub Desktop Plus
   shell.sh              oh-my-zsh + plugins, login shell
   dotfiles.sh           symlink home/ into ~
+  ssh.sh                ssh config, Bitwarden agent socket, key permissions
   claude.sh             Claude Code CLI, skills, plugins
 Brewfile                CLI stack, all platforms
 Brewfile.macos          casks and fonts
