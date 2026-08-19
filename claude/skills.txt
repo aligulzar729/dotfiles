@@ -2,6 +2,10 @@
 # Format: <github repo> <skill,skill,...>   ("*" installs every skill in the repo)
 # Skills written here in claude/skills/ stay vendored and are symlinked instead.
 
+# install-anti-slop is vendored in claude/skills/ until the ESLint+Prettier port lands
+# upstream; after that PR merges, drop the vendored copy and use:
+#   dmmulroy/anti-slop  install-anti-slop
+
 jakubkrehel/skills                    *
 addyosmani/agent-skills               code-review-and-quality,code-simplification,debugging-and-error-recovery,git-workflow-and-versioning,security-and-hardening
 android/skills                        adaptive,edge-to-edge,migrate-xml-views-to-jetpack-compose
