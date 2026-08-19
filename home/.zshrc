@@ -69,7 +69,7 @@ alias pam='php artisan migrate'
 alias paoc='php artisan optimize:clear'
 alias pint='./vendor/bin/pint'
 alias pest='./vendor/bin/pest'
-alias patc='pest --parallel --bail --coverage --recreate-databases --tia'
+alias patc='pest --parallel --bail --coverage --recreate-databases'
 alias patr='pest --bail --profile'
 
 alias nd='npm run dev'
@@ -147,6 +147,8 @@ dots() {
     ghostty|term)      $ed "$repo/home/.config/ghostty/config" ;;
     atuin)             $ed "$repo/home/.config/atuin/config.toml" ;;
     eza)               $ed "$repo/home/.config/eza/theme.yml" ;;
+    ssh)               $ed "$repo/home/.ssh/config.d/99-defaults.conf" ;;
+    hosts)             $ed "$HOME/.ssh/config.d" ;;
     zed|editor)        $ed "$repo/home/.config/zed/settings.json" ;;
     keymap)            $ed "$repo/home/.config/zed/keymap.json" ;;
     tasks)             $ed "$repo/home/.config/zed/tasks.json" ;;
@@ -176,7 +178,8 @@ dots() {
   atuin       shell history           pull        git pull + re-link
   eza         ls colours              push        add + commit + push
   zed         Zed settings            keymap      Zed keybindings
-  tasks       Zed tasks               snippets    Zed snippets"
+  tasks       Zed tasks               snippets    Zed snippets
+  ssh         shared ssh defaults     hosts       your servers (private, local)"
       ;;
   esac
 }
@@ -184,7 +187,7 @@ dots() {
 _dots() {
   compadd cd brew pkg cask mac apps zsh rc local secrets claude plugins \
           starship prompt ghostty term atuin eza zed editor keymap tasks \
-          snippets steps readme \
+          snippets ssh hosts steps readme \
           install run link log status st diff pull sync push help
 }
 compdef _dots dots 2>/dev/null

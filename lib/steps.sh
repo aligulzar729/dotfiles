@@ -17,7 +17,7 @@ step_desc() {
   done
 }
 
-for _domain in system apps shell dotfiles claude; do
+for _domain in system apps shell dotfiles ssh claude; do
   . "$DOTFILES/lib/steps.d/$_domain.sh"
 done
 unset _domain
