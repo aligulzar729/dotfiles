@@ -157,6 +157,12 @@ dots() {
 
     doctor|check)      "$repo/install.sh" doctor ;;
     backup)            "$repo/lib/backup.sh" push ;;
+    audit)             git -C "$repo" log -p --all \
+                         | awk -v allow_file="$repo/.pii-allow" -f "$repo/lib/scan.awk" \
+                         && print -r -- "history clean" ;;
+    servers|fleet)     "$repo/lib/servers.sh" ;;
+    deploy)            "$repo/lib/deploy.sh" "$@" ;;
+    adopt)             "$repo/lib/adopt.sh" ;;
     restore)           "$repo/lib/backup.sh" pull ;;
     vault)             "$repo/lib/backup.sh" status ;;
     bench)             _dots_bench "$@" ;;
@@ -182,6 +188,8 @@ dots() {
   doctor      verify this machine
   bench       time zsh startup        backup      private files -> Bitwarden
   vault       what is backed up       restore     Bitwarden -> private files
+  audit       scan git history        adopt       add stray brews to Brewfile
+  servers     fleet health            deploy      server profile -> a host
   claude      marketplaces/plugins    log         last install log
   starship    prompt                  status      git status
   ghostty     terminal                diff        git diff
@@ -216,6 +224,7 @@ _dots() {
           starship prompt ghostty term atuin eza zed editor keymap tasks \
           snippets ssh hosts steps readme \
           install run link lint doctor check bench backup restore vault \
+          audit servers fleet deploy adopt \
           log status st diff pull sync push help
 }
 compdef _dots dots 2>/dev/null

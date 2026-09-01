@@ -1,0 +1,12 @@
+# Sourced from ~/.bashrc on servers. Deliberately small: these boxes are for
+# looking at things, not for living in.
+alias ll='ls -alh'
+alias ..='cd ..'
+alias df='df -h'
+alias du='du -h'
+alias ports='ss -tulpn'
+alias jctl='journalctl -xe --no-pager'
+alias dc='docker compose'
+export EDITOR=vim
+export HISTSIZE=50000 HISTFILESIZE=50000 HISTCONTROL=ignoreboth:erasedups
+shopt -s histappend checkwinsize 2>/dev/null

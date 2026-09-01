@@ -1,0 +1,10 @@
+# Readline defaults for a bare server. Applies to bash, psql, mysql, python.
+set editing-mode emacs
+set completion-ignore-case on
+set show-all-if-ambiguous on
+set colored-stats on
+set bell-style none
+# History search on the arrow keys, the single biggest ergonomic win on a box
+# with no shell framework.
+"\e[A": history-search-backward
+"\e[B": history-search-forward

@@ -3,6 +3,12 @@
 Same shell setup on every machine. macOS, Linux, WSL.
 
 ```sh
+curl -fsSL https://raw.githubusercontent.com/aligulzar729/dotfiles/main/bootstrap.sh | bash
+```
+
+or, if you would rather read it first:
+
+```sh
 git clone https://github.com/aligulzar729/dotfiles ~/Projects/dotfiles
 cd ~/Projects/dotfiles
 ./install.sh
@@ -13,6 +19,7 @@ That opens a picker. Take everything on a new box, one step on an old one.
 ```sh
 ./install.sh --all             # no prompts
 ./install.sh link claude       # named steps
+./install.sh --dry-run link    # show what would change, change nothing
 ./install.sh --verbose zsh     # stream output instead of logging it
 ./install.sh --list            # what the steps are
 ```
@@ -56,6 +63,8 @@ dots claude      # marketplaces/plugins    dots diff      # git diff
 dots doctor      # verify this machine     dots lint      # shellcheck
 dots bench       # time zsh startup        dots backup    # -> Bitwarden
 dots vault       # what is backed up       dots restore   # <- Bitwarden
+dots audit       # scan git history        dots adopt     # stray brews
+dots servers     # fleet health            dots deploy    # profile -> host
 dots starship    # prompt                  dots pull      # git pull + re-link
 dots ghostty     # terminal                dots push      # add + commit + push
 dots zed         # Zed settings            dots keymap    # Zed keybindings
@@ -153,6 +162,12 @@ lib/steps.d/
   macos.sh              macOS defaults: keyboard, Finder, Dock, screenshots
   doctor.sh             health check: verifies, never writes
 lib/backup.sh           private files to and from Bitwarden, see `dots backup`
+lib/scan.awk            the secret and PII patterns, shared by hook and audit
+lib/servers.sh          fleet health across 10-servers.conf
+lib/deploy.sh           copies remote/ onto a server
+lib/adopt.sh            adds stray brews into the Brewfile
+remote/                 minimal server profile: inputrc, tmux, vim, aliases
+bootstrap.sh            clone plus install, for a machine with nothing on it
 hooks/pre-commit        scans staged changes for secrets and PII
 .pii-allow              regexes the commit scan must not report
 Brewfile                CLI stack, all platforms

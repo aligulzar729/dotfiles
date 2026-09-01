@@ -28,6 +28,7 @@ trap 'ui_spin_stop; ui_cursor_show; exit 130' INT TERM
 
 VERBOSE=0
 ASSUME_YES=0
+DRY_RUN=0
 SELECTED=""
 
 usage() {
@@ -37,6 +38,7 @@ Usage: ./install.sh [options] [step...]
 Options:
   -a, --all       run every step without prompting
   -l, --list      list available steps
+  -n, --dry-run   list what each step would run, change nothing
   -v, --verbose   show command output instead of writing it to the log
   -y, --yes       answer yes to confirmations
   -h, --help      this message
@@ -50,6 +52,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     -a|--all)     SELECTED="$STEPS"; ASSUME_YES=1 ;;
     -l|--list)    for s in $STEPS; do printf '%-10s %s\n' "$s" "$(step_desc "$s")"; done; exit 0 ;;
+    -n|--dry-run) DRY_RUN=1 ;;
     -v|--verbose) VERBOSE=1 ;;
     -y|--yes)     ASSUME_YES=1 ;;
     -h|--help)    usage; exit 0 ;;
@@ -73,6 +76,7 @@ ui_meta "platform" "$OS ($ARCH)"
 ui_meta "packages" "${PKG:-homebrew only}"
 ui_meta "dotfiles" "$DOTFILES"
 ui_meta "log"      "$LOG_FILE"
+[ "$DRY_RUN" = 1 ] && ui_meta "mode" "dry run, nothing will be changed"
 printf '\n'
 
 if [ -z "${SELECTED// /}" ] && [ "$UI_TTY" != 1 ]; then

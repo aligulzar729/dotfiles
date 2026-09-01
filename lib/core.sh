@@ -44,6 +44,13 @@ task() {
   TASK_STATE=ok
   TASK_DETAIL=""
 
+  # Every step's writes go through here, so gating this one call is enough.
+  if [ "${DRY_RUN:-0}" = 1 ]; then
+    ui_result skip "$label" "would run: $*"
+    COUNT_SKIP=$((COUNT_SKIP + 1))
+    return 0
+  fi
+
   ui_spin_start "$label"
   if [ "${VERBOSE:-0}" = 1 ]; then
     if "$@"; then :; else TASK_STATE=fail; fi

@@ -18,6 +18,7 @@ step_doctor() {
   task "Claude skills"     _dr_claude_skills
   task "CLAUDE.md"         _dr_claude_md
   task "Commit guard"      _dr_hooks
+  task "History"           _dr_history
   task "Deferred work"     _dr_debt
 }
 
@@ -213,6 +214,14 @@ _dr_hooks() {
   "$DOTFILES/hooks/pre-commit" >/dev/null 2>&1
   [ $? -le 1 ] || { task_note "hooks/pre-commit errored, run it by hand"; return 1; }
   task_skip "pre-commit active"
+}
+
+# The commit guard only sees new commits. History predates it.
+_dr_history() {
+  git -C "$DOTFILES" log -p --all 2>/dev/null \
+    | awk -v allow_file="$DOTFILES/.pii-allow" -f "$DOTFILES/lib/scan.awk" \
+    || { task_note "secrets or PII in git history, see the log"; return 1; }
+  task_skip "no secrets in git history"
 }
 
 # Reports, never fails: the count exists so "later" does not become "never".

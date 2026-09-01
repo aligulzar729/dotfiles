@@ -1,0 +1,15 @@
+" Minimal vimrc for servers. Nothing that needs a plugin manager.
+set nocompatible
+syntax on
+filetype plugin indent on
+set number relativenumber
+set expandtab tabstop=2 shiftwidth=2
+set ignorecase smartcase incsearch hlsearch
+set mouse=a
+set backspace=indent,eol,start
+set undofile undodir=~/.vim/undo
+" A server is exactly where you notice you had no swap directory.
+set directory=~/.vim/swap//
+set laststatus=2
+set statusline=%f\ %m%r%=%l:%c\ %P
+nnoremap <silent> <Esc><Esc> :nohlsearch<CR>

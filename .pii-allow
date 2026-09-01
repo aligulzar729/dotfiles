@@ -7,3 +7,15 @@ ANTHROPIC_API_KEY="\$\(security find-generic-password
 # A company's advertised recruiting address, quoted in a job-hunt note. Still a
 # third party's address in a public repo: worth deciding if it belongs.
 jobs@woocom\.com\.au
+
+# The jwt.io tutorial token. It appears as a negative test fixture in the
+# vendored job-application-agent, in a test asserting credential-bearing URLs
+# are rejected. Known public, signs nothing, worth naming rather than silencing
+# every JWT that happens to sit near a fiction domain.
+SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+
+# job-hunt is deliberately tracked in full, contact details and all, because
+# this repo is private. Exempted by path so the details do not have to be
+# copied into this file to silence them. Remove this line if the repo is ever
+# made public again.
+path:^claude/skills/job-hunt/references/
