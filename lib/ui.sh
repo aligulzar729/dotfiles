@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Screen output. Nothing in here installs anything.
 
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ] && [ "${TERM:-dumb}" != dumb ]; then
@@ -69,7 +70,6 @@ ui_spin_stop() {
   ui_cursor_show
 }
 
-# ui_result ok|skip|fail <label> [detail]
 ui_result() {
   local state="$1" label="$2" detail="${3:-}" icon color
   case "$state" in
@@ -107,11 +107,6 @@ ui_select() {
   local checked=()
   for ((i = 0; i < n; i++)); do checked[i]=1; done
 
-  if [ "$UI_TTY" != 1 ]; then
-    for ((i = 0; i < n; i++)); do printf '%s ' "$i"; done
-    return 0
-  fi
-
   printf '%s%s%s\n' "$C_BOLD" "$title" "$C_OFF" >&2
   printf '%s  ↑↓ move · space toggle · a all · n none · enter run · q quit%s\n\n' \
     "$C_DIM" "$C_OFF" >&2
@@ -140,7 +135,7 @@ ui_select() {
         ;;
       k) cur=$(( (cur - 1 + n) % n )) ;;
       j) cur=$(( (cur + 1) % n )) ;;
-      ' ') [ "${checked[$cur]}" = 1 ] && checked[$cur]=0 || checked[$cur]=1 ;;
+      ' ') if [ "${checked[cur]}" = 1 ]; then checked[cur]=0; else checked[cur]=1; fi ;;
       a) for ((i = 0; i < n; i++)); do checked[i]=1; done ;;
       n) for ((i = 0; i < n; i++)); do checked[i]=0; done ;;
       q) ui_cursor_show; printf '\n' >&2; exit 0 ;;

@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Claude Code: the CLI, the skills in skills.txt, and the marketplaces/plugins in plugins.txt.
 
 register claude "Claude Code           (marketplaces, plugins, skills)"
@@ -57,21 +58,38 @@ _claude_skills() {
     unset IFS
   fi
 
-  npx -y skills@latest add "$repo" -g -a claude-code "${args[@]}" -y
+  # This runs inside a `while read ... done < skills.txt` loop and npx inherits
+  # that stdin. Without </dev/null it eats the rest of the file, leaving only
+  # the first repo installed.
+  npx -y skills@latest add "$repo" -g -a claude-code "${args[@]}" -y </dev/null
 }
 
 _claude_market() {
-  local market="$1" repo="$2" plugin_list="$3" plugin installed=0
-  claude plugin marketplace add "$repo" >/dev/null 2>&1 || true
+  local market="$1" repo="$2" plugin_list="$3" plugin installed=0 failed=0 present
+  claude plugin marketplace add "$repo" >/dev/null 2>&1 </dev/null || true
 
   [ "$plugin_list" = "-" ] && { task_note "registered, no plugins"; return 0; }
 
   local IFS=','
   for plugin in $plugin_list; do
-    if claude plugin install "$plugin@$market" >/dev/null 2>&1; then
+    if claude plugin install "$plugin@$market" >/dev/null 2>&1 </dev/null; then
       installed=$((installed + 1))
+      continue
     fi
+    # A failed install and an already-installed one both return non-zero, so
+    # ask the machine rather than assuming the second.
+    present="$(claude plugin list 2>/dev/null)"
+    case "$present" in
+      *"$plugin@$market"*) ;;
+      *) failed=$((failed + 1)); echo "install failed: $plugin@$market" ;;
+    esac
   done
+  unset IFS
+
+  if [ "$failed" -gt 0 ]; then
+    task_note "$failed plugin(s) failed, see the log"
+    return 1
+  fi
   if [ "$installed" = 0 ]; then
     task_skip "plugins already installed"
   else

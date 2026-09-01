@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # zsh: oh-my-zsh + custom plugins, and making zsh the login shell.
 
 register zsh   "oh-my-zsh             (framework + 5 custom plugins)"
@@ -36,19 +37,42 @@ _omz() {
     "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 }
 
+SHELL_RESULT=""
+
 step_shell() {
-  task "Default shell" _login_shell
+  # `sudo tee /etc/shells` and chsh both ask for a password, which task() sends
+  # to the log where nobody sees it. Prompt first, record the result after.
+  _login_shell_change
+  task "Default shell" _login_shell_report
 }
 
-_login_shell() {
+_login_shell_change() {
+  SHELL_RESULT=""
   local zsh_path
-  zsh_path="$(command -v zsh)" || { task_skip "zsh not installed yet"; return 0; }
+  zsh_path="$(command -v zsh)" || { SHELL_RESULT="zsh not installed yet"; return 0; }
 
   if [ "${SHELL:-}" = "$zsh_path" ]; then
-    task_skip "zsh is already the login shell"
+    SHELL_RESULT="zsh is already the login shell"
     return 0
   fi
+  if [ "$UI_TTY" != 1 ]; then
+    SHELL_RESULT="needs a password, run manually: chsh -s $zsh_path"
+    return 0
+  fi
+
+  ui_info "Making zsh your login shell. This asks for your password."
   grep -qxF "$zsh_path" /etc/shells 2>/dev/null \
     || echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
-  chsh -s "$zsh_path" || { task_note "run manually: chsh -s $zsh_path"; return 0; }
+  if chsh -s "$zsh_path"; then
+    SHELL_RESULT="changed"
+  else
+    SHELL_RESULT="run manually: chsh -s $zsh_path"
+  fi
+}
+
+_login_shell_report() {
+  case "$SHELL_RESULT" in
+    changed) task_note "zsh set, active at your next login" ;;
+    *)       task_skip "$SHELL_RESULT" ;;
+  esac
 }

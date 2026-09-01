@@ -1,0 +1,6 @@
+# ~ in this repo shows up in task() labels ("~/.ssh"), which are display
+# strings printed to the screen, never paths. Real paths use $HOME.
+disable=SC2088
+
+# lib/*.sh are sourced by install.sh, not executed.
+disable=SC1090,SC1091

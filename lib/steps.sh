@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Loads the step definitions from steps.d and builds the ordered step list.
 # Each domain file calls `register <name> <desc>` then defines step_<name>.
 # Source order here is run order, so dependencies stay obvious.
@@ -17,9 +18,10 @@ step_desc() {
   done
 }
 
-for _domain in system apps shell dotfiles ssh claude; do
+for _domain in system apps shell dotfiles ssh claude macos doctor; do
   . "$DOTFILES/lib/steps.d/$_domain.sh"
 done
 unset _domain
 
+# shellcheck disable=SC2034  # read by install.sh
 STEPS="${STEP_NAMES[*]}"

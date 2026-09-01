@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # ~/.ssh: config from the template, Bitwarden's SSH agent, key permissions.
 
 register ssh "SSH                   (config, Bitwarden agent, server list, key perms)"
@@ -60,7 +61,12 @@ _ssh_agent() {
   local sock="" candidate
   while read -r candidate; do
     [ -z "$candidate" ] && continue
-    [ -S "$candidate" ] && { sock="$candidate"; break; }
+    # A socket file outlives the process that served it, so -S alone picks a
+    # stale one from an old Bitwarden flavour. ssh-add exits 2 only when it
+    # cannot connect.
+    [ -S "$candidate" ] || continue
+    SSH_AUTH_SOCK="$candidate" ssh-add -l >/dev/null 2>&1
+    [ $? -ne 2 ] && { sock="$candidate"; break; }
   done <<INNER
 $BW_SOCKETS
 INNER
@@ -85,10 +91,16 @@ Host *
 INNER
   chmod 600 "$HOME/.ssh/config.d/00-agent.conf"
 
-  if [ "$running" = 1 ]; then
-    task_note "socket live"
+  # A green tick over an agent that cannot authenticate just moves the failure
+  # to the next ssh, as a password prompt.
+  if [ "$running" != 1 ]; then
+    task_skip "agent not running: Bitwarden > Settings > Allow SSH agent"
+    return 0
+  fi
+  if SSH_AUTH_SOCK="$sock" ssh-add -l >/dev/null 2>&1; then
+    task_note "socket live, $(SSH_AUTH_SOCK="$sock" ssh-add -l | wc -l | tr -d ' ') key(s) loaded"
   else
-    task_note "enable it: Bitwarden > Settings > Allow SSH agent"
+    task_skip "socket live but no keys: unlock Bitwarden and enable the key item"
   fi
 }
 
@@ -110,7 +122,6 @@ SSH_HOSTS_PASTE=""
 _ssh_hosts_prompt() {
   SSH_HOSTS_PASTE=""
 
-  # Already have a list: remind how to get it INTO Bitwarden, do not ask again.
   if [ -s "$SSH_HOSTS_FILE" ]; then
     [ "$UI_TTY" = 1 ] && [ "${ASSUME_YES:-0}" != 1 ] && {
       ui_info "back up your server list: $(_ssh_clip_cmd)"
@@ -140,7 +151,7 @@ _ssh_hosts_prompt() {
 
 _ssh_hosts_write() {
   if [ -z "$SSH_HOSTS_PASTE" ]; then
-    [ -s "$SSH_HOSTS_FILE" ] && task_skip "already present" || task_skip "nothing pasted"
+    if [ -s "$SSH_HOSTS_FILE" ]; then task_skip "already present"; else task_skip "nothing pasted"; fi
     return 0
   fi
 

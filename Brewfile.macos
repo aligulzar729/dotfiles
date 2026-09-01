@@ -1,5 +1,9 @@
 # macOS only. Casks do not exist on Linux Homebrew.
 
+# Formula, not a cask. Lives here because bitwarden-cli has no Linux bottle;
+# on Linux use: npm install -g @bitwarden/cli. Used by `dots backup`.
+brew "bitwarden-cli"
+
 tap "pol-rivero/tap"
 
 cask "ghostty"

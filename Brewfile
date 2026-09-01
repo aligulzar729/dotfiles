@@ -14,6 +14,12 @@ brew "bat"
 brew "ripgrep"
 brew "fd"
 
+# Lints the installer. See `dots lint`.
+brew "shellcheck"
+
+# npx, which the claude step uses to install third-party skills.
+brew "node"
+
 brew "lazygit"
 brew "git-delta"
 brew "tealdeer"

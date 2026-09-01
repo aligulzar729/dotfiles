@@ -1,15 +1,16 @@
 # Third-party skills, installed with the skills CLI (npx skills) instead of vendored.
 # Format: <github repo> <skill,skill,...>   ("*" installs every skill in the repo)
 # Skills written here in claude/skills/ stay vendored and are symlinked instead.
+#
+# A "# local-only: <name>" line declares a skill that lives only in
+# ~/.claude/skills, so `dots doctor` stops reporting it as undeclared.
 
 # install-anti-slop is vendored in claude/skills/ until the ESLint+Prettier port lands
 # upstream; after that PR merges, drop the vendored copy and use:
 #   dmmulroy/anti-slop  install-anti-slop
 
-jakubkrehel/skills                    *
+jakubkrehel/skills                    better-accessibility,better-colors,better-interface,better-layout,better-typography,better-ui,better-writing,break,explain-interface,interface-review,variant
 addyosmani/agent-skills               code-review-and-quality,code-simplification,debugging-and-error-recovery,git-workflow-and-versioning,security-and-hardening
-android/skills                        adaptive,edge-to-edge,migrate-xml-views-to-jetpack-compose
-stripe/ai                             stripe-best-practices
 builderio/skills                      read-the-damn-docs
 peterfox/agent-skills                 phpstan-developer
 marcelorodrigo/agent-skills           phpstan-fixer

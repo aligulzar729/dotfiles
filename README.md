@@ -39,7 +39,7 @@ machines.
 | Dev | git, gh, lazygit, git-delta, mailpit |
 | Apps | Ghostty, Zed, Pika, VLC, Bitwarden, GitHub Desktop Plus, JetBrainsMono Nerd Font |
 | Configs | zsh, git (delta), ssh (+ Bitwarden agent), starship, atuin, eza, ghostty, Zed |
-| Claude Code | CLI, 14 marketplaces, 19 plugins, 25 skills (5 local, 20 from skills.txt) |
+| Claude Code | CLI, 6 marketplaces, 12 plugins, skills vendored here plus skills.txt |
 | omz plugins | zsh-autosuggestions, zsh-syntax-highlighting, zsh-history-substring-search, zsh-completions, artisan |
 
 ## The dots command
@@ -53,6 +53,9 @@ dots cask        # add a macOS app         dots link      # re-link dotfiles onl
 dots zsh         # shared shell config     dots log       # last install log
 dots local       # secrets, per-machine    dots status    # git status
 dots claude      # marketplaces/plugins    dots diff      # git diff
+dots doctor      # verify this machine     dots lint      # shellcheck
+dots bench       # time zsh startup        dots backup    # -> Bitwarden
+dots vault       # what is backed up       dots restore   # <- Bitwarden
 dots starship    # prompt                  dots pull      # git pull + re-link
 dots ghostty     # terminal                dots push      # add + commit + push
 dots zed         # Zed settings            dots keymap    # Zed keybindings
@@ -142,17 +145,24 @@ lib/core.sh             platform detection, task runner, ensure_* helpers
 lib/steps.sh            loader: sources steps.d, builds the ordered step list
 lib/steps.d/
   system.sh             prereqs, homebrew, packages, fonts
-  apps.sh               Ghostty, Zed, GitHub Desktop Plus
+  apps.sh               Ghostty, Zed, GitHub Desktop Plus, Bitwarden
   shell.sh              oh-my-zsh + plugins, login shell
   dotfiles.sh           symlink home/ into ~
   ssh.sh                ssh config, Bitwarden agent socket, key permissions
   claude.sh             Claude Code CLI, skills, plugins
+  macos.sh              macOS defaults: keyboard, Finder, Dock, screenshots
+  doctor.sh             health check: verifies, never writes
+lib/backup.sh           private files to and from Bitwarden, see `dots backup`
+hooks/pre-commit        scans staged changes for secrets and PII
+.pii-allow              regexes the commit scan must not report
 Brewfile                CLI stack, all platforms
 Brewfile.macos          casks and fonts
 home/                   mirrors ~, everything in here gets symlinked
 claude/plugins.txt      marketplace to plugin manifest
 claude/skills.txt       third-party skills, installed with the skills CLI
-claude/skills/          5 skills written here, each linked into ~/.claude/skills
+claude/skills/          skills vendored here, each linked into ~/.claude/skills
+.shellcheckrc           lint config, see `dots lint`
+.github/workflows/      shellcheck plus a container smoke test per distro
 ```
 
 Three layers, one job each. UI never installs, steps never print. Every action

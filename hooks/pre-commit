@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+#
+# Scans staged content for secrets and PII. .gitignore matches paths, which
+# keeps passing after an upstream rename or a `git add -f`, so this reads the
+# bytes instead. A heuristic, not a boundary. Override: git commit --no-verify.
+# Wired up by the link step via core.hooksPath.
+#
+# No {n} intervals in the patterns: the awk on macOS does not support them.
+
+set -uo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+
+git diff --cached -U0 | awk -v allow_file="$root/.pii-allow" -v dq='"' -v sq="'" '
+BEGIN {
+  n = 0
+  name[++n] = "private key";      pat[n] = "BEGIN [A-Z ]*PRIVATE KEY"
+  name[++n] = "aws key";          pat[n] = "AKIA[0-9A-Z][0-9A-Z][0-9A-Z][0-9A-Z]+"
+  name[++n] = "github token";     pat[n] = "gh[pousr]_[A-Za-z0-9][A-Za-z0-9][A-Za-z0-9]+"
+  name[++n] = "anthropic key";    pat[n] = "sk-ant-[A-Za-z0-9_-]+"   # pii-ok
+  name[++n] = "openai key";       pat[n] = "sk-[A-Za-z0-9][A-Za-z0-9][A-Za-z0-9]+"   # pii-ok
+  name[++n] = "slack token";      pat[n] = "xox[baprs]-[A-Za-z0-9-]+"
+  name[++n] = "secret literal";   pat[n] = "(api[_-]?key|secret|passwd|password|token)[ \t]*[=:][ \t]*[\"'"'"'][^\"'"'"']+[\"'"'"']"
+  name[++n] = "phone number";     pat[n] = "\\+[0-9]+[-. ][0-9]+[-. ][0-9]+[-. ][0-9]+"
+  name[++n] = "email address";    pat[n] = "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z][a-zA-Z]+"
+  npat = n
+
+  # RFC 2606 and NANP fiction ranges are never real.
+  na = 0
+  allow[++na] = "example\\.(com|org|net)"
+  allow[++na] = "@example\\."
+  allow[++na] = "\\.example([^a-zA-Z]|$)"   # .example is a reserved TLD, RFC 2606
+  allow[++na] = "555-?01[0-9][0-9]"
+  allow[++na] = "\\+1[-. ]?[0-9][0-9][0-9][-. ]?555[-. ]?[0-9]"
+  allow[++na] = "pii-ok"
+  while ((getline line < allow_file) > 0) {
+    if (line ~ /^[ \t]*(#|$)/) continue
+    allow[++na] = line
+  }
+  nallow = na
+  quoted = "[" dq sq "][^" dq sq "]+[" dq sq "]"
+  findings = 0
+  file = "?"
+  lineno = 0
+}
+
+/^\+\+\+ b\// { file = substr($0, 7); next }
+
+# @@ -old,count +new,count @@ - the new-side start line.
+/^@@ / {
+  split($3, a, ",")
+  lineno = a[1] + 0
+  if (lineno < 0) lineno = -lineno
+  next
+}
+
+/^\+/ {
+  content = substr($0, 2)
+  for (i = 1; i <= nallow; i++)
+    if (content ~ allow[i]) { lineno++; next }
+
+  for (i = 1; i <= npat; i++) {
+    if (content ~ pat[i]) {
+      # Test fixtures look like assignments too. Real credentials are long and
+      # not made of words. Match the value for THIS keyword: a UUID earlier on
+      # the line would otherwise pass the length test for a short token after it.
+      # (No apostrophes in here: the awk program is inside single quotes.)
+      if (name[i] == "secret literal") {
+        if (!match(content, pat[i])) continue
+        assigned = substr(content, RSTART, RLENGTH)
+        if (!match(assigned, quoted)) continue
+        value = substr(assigned, RSTART + 1, RLENGTH - 2)
+        if (length(value) < 20) continue
+        if (value ~ /^[a-z]+(-[a-z]+)+$/) continue
+      }
+      excerpt = substr(content, 1, 40)
+      # Never print the whole secret: this lands in scrollback and CI logs.
+      if (length(excerpt) > 8) excerpt = substr(excerpt, 1, 8) "********"
+      printf "  %s:%d  %s\n      %s\n", file, lineno, name[i], excerpt > "/dev/stderr"
+      findings++
+      break
+    }
+  }
+  lineno++
+}
+
+END {
+  if (findings > 0) {
+    printf "\n  commit blocked: %d possible secret(s) or PII in staged changes\n\n", findings > "/dev/stderr"
+    printf "  False positive? Add \"pii-ok\" to that line, or a regex to .pii-allow.\n" > "/dev/stderr"
+    printf "  Override once: git commit --no-verify\n\n" > "/dev/stderr"
+    exit 1
+  }
+}
+'

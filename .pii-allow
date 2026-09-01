@@ -1,0 +1,9 @@
+# Regexes the pre-commit hook must not report, one per line. Fiction ranges
+# (example.com, 555-01xx) are built in. Every entry here is a hole in the
+# guard, so prefer marking one line with "pii-ok".
+
+ANTHROPIC_API_KEY="\$\(security find-generic-password
+
+# A company's advertised recruiting address, quoted in a job-hunt note. Still a
+# third party's address in a public repo: worth deciding if it belongs.
+jobs@woocom\.com\.au

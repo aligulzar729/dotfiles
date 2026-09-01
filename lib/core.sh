@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Platform detection, the task runner, and the helpers steps are built from.
 
 _tmpdir="${TMPDIR:-/tmp}"; _tmpdir="${_tmpdir%/}"
@@ -18,8 +19,11 @@ detect_platform() {
     *) die "unsupported platform: $(uname -s)" ;;
   esac
 
-  ARCH="$(uname -m)"
-  HAS_GUI=1; [ "$OS" = wsl ] && HAS_GUI=0
+  # shellcheck disable=SC2034  # ARCH and HAS_GUI are read by lib/steps.d/*.sh
+  {
+    ARCH="$(uname -m)"
+    if [ "$OS" = wsl ]; then HAS_GUI=0; else HAS_GUI=1; fi
+  }
 
   PKG=""
   local p
@@ -32,8 +36,6 @@ is_macos() { [ "$OS" = macos ]; }
 is_linux() { [ "$OS" = linux ] || [ "$OS" = wsl ]; }
 is_wsl()   { [ "$OS" = wsl ]; }
 
-# task <label> <function> [args...]
-#
 # The function is called, not piped. Redirecting a function call keeps it in
 # this shell, so task_skip set inside it is visible here. A pipe would push it
 # into a subshell and lose the state.
@@ -83,7 +85,7 @@ ensure_repo() {
     before="$(git -C "$dir" rev-parse HEAD)"
     git -C "$dir" pull --quiet --ff-only || true
     after="$(git -C "$dir" rev-parse HEAD)"
-    [ "$before" = "$after" ] && task_skip "already cloned" || task_note "updated"
+    if [ "$before" = "$after" ]; then task_skip "already cloned"; else task_note "updated"; fi
     return 0
   fi
   rm -rf "$dir"

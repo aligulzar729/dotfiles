@@ -22,8 +22,8 @@ DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$DOTFILES/lib/steps.sh"
 
 trap 'ui_spin_stop; ui_cursor_show' EXIT
-# Separate from EXIT so Ctrl-C actually stops the run; the old shared handler
-# returned and let the next step start.
+# Separate from EXIT so Ctrl-C actually stops the run instead of falling
+# through to the next step.
 trap 'ui_spin_stop; ui_cursor_show; exit 130' INT TERM
 
 VERBOSE=0
@@ -74,6 +74,10 @@ ui_meta "packages" "${PKG:-homebrew only}"
 ui_meta "dotfiles" "$DOTFILES"
 ui_meta "log"      "$LOG_FILE"
 printf '\n'
+
+if [ -z "${SELECTED// /}" ] && [ "$UI_TTY" != 1 ]; then
+  die "not a terminal: name the steps to run, or pass --all"
+fi
 
 if [ -z "${SELECTED// /}" ]; then
   labels=()

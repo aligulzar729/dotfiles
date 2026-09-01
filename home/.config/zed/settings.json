@@ -199,9 +199,7 @@
   },
   "terminal": {
     "dock": "right",
-    "shell": {
-      "program": "/bin/zsh"
-    },
+    "shell": "system",
     "font_family": "JetBrainsMonoNL Nerd Font",
     "font_size": 14,
     "working_directory": "current_project_directory"

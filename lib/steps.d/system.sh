@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Bootstrap: build tools, Homebrew, the CLI stack, fonts.
 
 register prereqs  "Build prerequisites   (compiler + curl/git, Linux only)"
@@ -86,6 +87,12 @@ step_fonts() {
 _fonts() {
   if is_macos; then
     task_skip "installed as a cask by the packages step"
+    return 0
+  fi
+  # The terminal drawing the glyphs is a Windows app and cannot see fonts
+  # inside the WSL filesystem.
+  if [ "$HAS_GUI" = 0 ]; then
+    task_skip "WSL, install the font on Windows: https://github.com/ryanoasis/nerd-fonts/releases/latest"
     return 0
   fi
   local dir="$HOME/.local/share/fonts"

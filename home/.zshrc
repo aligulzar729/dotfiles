@@ -7,6 +7,8 @@ elif [ -x /usr/local/bin/brew ]; then
   eval "$(/usr/local/bin/brew shellenv)"
 elif [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+elif [ -x "$HOME/.linuxbrew/bin/brew" ]; then
+  eval "$("$HOME/.linuxbrew/bin/brew" shellenv)"
 fi
 
 # Where the Claude Code and Zed installers drop their binaries.
@@ -17,13 +19,17 @@ command -v zed >/dev/null && export EDITOR="zed --wait"
 
 export ZSH="$HOME/.oh-my-zsh"
 
+# Must be set before oh-my-zsh.sh. Eager loading cost 479ms of a 730ms startup
+# (zprof); lazy defers it until nvm/node/npm/npx/pnpm/yarn/corepack is run.
+zstyle ':omz:plugins:nvm' lazy yes
+
 plugins=(
   git gh
   laravel artisan composer
   npm node nvm
   docker docker-compose
-  brew macos vscode
-  history command-not-found colorize cp battery aliases
+  brew
+  history aliases
   zsh-autosuggestions
   zsh-syntax-highlighting
   zsh-history-substring-search
@@ -39,8 +45,6 @@ source $ZSH/oh-my-zsh.sh
 unalias artisan 2>/dev/null
 
 
-# Aliases
-
 alias ls='eza'
 alias ll='eza -la'
 alias llh='eza -la --git'
@@ -50,7 +54,7 @@ alias gs='git status'
 alias gcm='git commit'
 
 alias sail='sh $([ -f sail ] && echo sail || echo vendor/bin/sail)'
-alias su='sail up -d'
+alias sup='sail up -d'
 alias sdev='sail npm run dev'
 alias sbd='sail npm run build'
 alias sa='sail artisan'
@@ -84,13 +88,10 @@ alias dcd='docker compose down'
 alias reloadcli='source ~/.zshrc'
 
 
-# Functions
-
 # These were aliases in older setups. Drop any stale alias first so re-sourcing
 # (reloadcli) can redefine them as functions instead of erroring.
 unalias rmlogs rmlp zshconfig 2>/dev/null
 
-# paints the whole thing red.
 zshconfig() { ${=EDITOR:-vi} ~/.zshrc }
 
 rmlogs() {
@@ -124,8 +125,6 @@ y() {
 }
 
 
-# dots: open or run anything in the dotfiles repo
-
 export DOTFILES_DIR="${DOTFILES_DIR:-$HOME/Projects/dotfiles}"
 
 dots() {
@@ -156,6 +155,13 @@ dots() {
     steps)             $ed "$repo/lib/steps.d" ;;
     readme)            $ed "$repo/README.md" ;;
 
+    doctor|check)      "$repo/install.sh" doctor ;;
+    backup)            "$repo/lib/backup.sh" push ;;
+    restore)           "$repo/lib/backup.sh" pull ;;
+    vault)             "$repo/lib/backup.sh" status ;;
+    bench)             _dots_bench "$@" ;;
+    lint)              shellcheck -x -S style "$repo"/install.sh "$repo"/lib/*.sh "$repo"/lib/steps.d/*.sh \
+                         && print -r -- "shellcheck: clean" ;;
     install|run)       "$repo/install.sh" "$@" ;;
     link)              "$repo/install.sh" link ;;
     log)               ${=PAGER:-less} "${TMPDIR:-/tmp}/dotfiles-install.log" ;;
@@ -172,6 +178,10 @@ dots() {
   cask        macOS apps + fonts
   zsh         shared .zshrc           install     run the installer
   local       secrets, per-machine    link        re-link dotfiles only
+  lint        shellcheck the installer
+  doctor      verify this machine
+  bench       time zsh startup        backup      private files -> Bitwarden
+  vault       what is backed up       restore     Bitwarden -> private files
   claude      marketplaces/plugins    log         last install log
   starship    prompt                  status      git status
   ghostty     terminal                diff        git diff
@@ -184,11 +194,29 @@ dots() {
   esac
 }
 
+_dots_bench() {
+  local runs=${1:-5} budget=${2:-400} t0 t1 ms best=99999
+  zmodload zsh/datetime
+  zsh -i -c exit 2>/dev/null   # warm the compdump and any caches
+  repeat $runs; do
+    t0=$EPOCHREALTIME; zsh -i -c exit 2>/dev/null; t1=$EPOCHREALTIME
+    ms=$(( (t1 - t0) * 1000 ))
+    (( ms < best )) && best=$ms
+  done
+  printf 'zsh startup: %.0fms  (best of %d, budget %dms)\n' $best $runs $budget
+  if (( best > budget )); then
+    print -u2 "over budget. Find the cost with:"
+    print -u2 "  zsh -c 'zmodload zsh/zprof; source ~/.zshrc; zprof | head -15'"
+    return 1
+  fi
+}
+
 _dots() {
   compadd cd brew pkg cask mac apps zsh rc local secrets claude plugins \
           starship prompt ghostty term atuin eza zed editor keymap tasks \
           snippets ssh hosts steps readme \
-          install run link log status st diff pull sync push help
+          install run link lint doctor check bench backup restore vault \
+          log status st diff pull sync push help
 }
 compdef _dots dots 2>/dev/null
 
