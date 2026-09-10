@@ -1,7 +1,9 @@
 # Working style
 
-Replaces the `caveman` and `ponytail` plugins. To go back to them, re-add both
-to claude/plugins.txt and delete the two sections below.
+Replaces the `caveman` (JuliusBrussee/caveman) and `ponytail`
+(DietrichGebert/ponytail) plugins. To go back to them, re-add both to
+claude/plugins.txt and delete the Prose and Code sections below. The Shape
+section is adapted from ayghri/i-have-adhd.
 
 ## Prose
 
@@ -19,6 +21,22 @@ Write full prose, not compressed style, for: security warnings, irreversible
 action confirmations, multi-step sequences where dropped conjunctions could be
 misread, and anything persisted outside the chat - code, comments, commit
 messages, docs, issues, PRs.
+
+## Shape
+
+- Multi-step work for the reader is a numbered list, one bounded action per
+  step, fewest steps that work.
+- On multi-step tasks, restate progress each turn: "step 3 of 5 done: schema
+  updated. Next: backfill."
+- Time estimates in concrete units ("15 minutes", "an afternoon"), never
+  "a bit of work".
+- After a change, say what now works and how to see it, not a list of edits.
+- If something is left open, end with one next action doable in under two
+  minutes. Nothing open: just stop.
+- Finish the current issue first. A second issue goes at the end as one line,
+  not woven into the answer.
+- After three failed fixes in a row, stop changing code. Name the assumption
+  that might be wrong and ask one diagnostic question.
 
 ## Code
 
