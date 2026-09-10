@@ -5,6 +5,12 @@
 # A "# local-only: <name>" line declares a skill that lives only in
 # ~/.claude/skills, so `dots doctor` stops reporting it as undeclared.
 
+# Shipped by the Omarchy package on Arch as symlinks into
+# /usr/share/omarchy/default/agents/skills, so they exist on this machine only
+# and are reinstalled by Omarchy itself rather than by this repo.
+# local-only: diagnose-crash
+# local-only: omarchy
+
 # install-anti-slop is vendored in claude/skills/ until the ESLint+Prettier port lands
 # upstream; after that PR merges, drop the vendored copy and use:
 #   dmmulroy/anti-slop  install-anti-slop

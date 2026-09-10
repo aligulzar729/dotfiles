@@ -53,3 +53,6 @@ keybind = cmd+left=text:\x01
 keybind = cmd+right=text:\x05
 keybind = alt+left=esc:b
 keybind = alt+right=esc:f
+
+# Machine-local overrides (optional; absent on other machines).
+config-file = ?~/.config/ghostty/config.local

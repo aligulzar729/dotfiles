@@ -249,6 +249,7 @@ compdef _dots dots 2>/dev/null
 command -v starship >/dev/null && eval "$(starship init zsh)"
 command -v fzf      >/dev/null && source <(fzf --zsh)
 command -v atuin    >/dev/null && eval "$(atuin init zsh)"
+command -v direnv   >/dev/null && eval "$(direnv hook zsh)"
 
 export EZA_CONFIG_DIR="$HOME/.config/eza"
 
