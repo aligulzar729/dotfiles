@@ -63,8 +63,9 @@ HOSTS_FILE="$HOME/.ssh/config.d/10-servers.conf"
 # and Ubuntu's 50-cloud-init.conf turns PasswordAuthentication back on.
 DROPIN=/etc/ssh/sshd_config.d/01-dotfiles.conf
 TS_MAC=/Applications/Tailscale.app/Contents/MacOS/Tailscale
-# /usr/sbin is not on a normal user's PATH on Debian.
-SSHD="$(command -v sshd || echo /usr/sbin/sshd)"
+# The system sshd the service runs, never PATH: a Homebrew openssh earlier on
+# PATH reads /opt/homebrew/etc/ssh, so checks against it test the wrong config.
+SSHD=/usr/sbin/sshd
 
 _keys() {
   ui_section "authorized_keys"
@@ -109,7 +110,6 @@ _sshd_install() {
     pacman) sysinstall openssh ;;
     *)      sysinstall openssh-server ;;
   esac || return 1
-  SSHD="$(command -v sshd || echo /usr/sbin/sshd)"
 }
 
 _lockdown() {
@@ -137,7 +137,7 @@ _lockdown() {
 
   # sshd -t refuses to run without host keys, and Arch, Fedora and Alpine
   # only make them on the service's first start. -A creates only missing ones.
-  sudo ssh-keygen -A >/dev/null
+  sudo /usr/bin/ssh-keygen -A >/dev/null
   # Debian's sshd -t needs this, and only systemd creates it, on first start.
   is_linux && sudo mkdir -p /run/sshd
   # A drop-in sshd cannot parse stops it accepting anyone, so back it out.
