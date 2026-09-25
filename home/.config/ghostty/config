@@ -1,5 +1,7 @@
-# Ghostty. Symlinked from the dotfiles repo, and on macOS also into
-# ~/Library/Application Support/com.mitchellh.ghostty/config by the link step.
+# Ghostty. Symlinked from the dotfiles repo. Ghostty reads this XDG path on
+# macOS too, so do not also link it into Application Support: both paths get
+# loaded, the config-file include below runs twice, and Ghostty reports
+# "cycle detected".
 # The macos-* keys are accepted and ignored on Linux, so one file covers both.
 # Reference: ghostty +show-config --default --docs
 

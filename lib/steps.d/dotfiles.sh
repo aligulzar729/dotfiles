@@ -12,12 +12,6 @@ step_link() {
 
   task "~/.zshrc.local" _zshrc_local
   task "Git hooks"      _git_hooks
-
-  if is_macos; then
-    task "Ghostty (Application Support)" \
-      ensure_link "$HOME/.config/ghostty/config" \
-      "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
-  fi
 }
 
 _zshrc_local() {
