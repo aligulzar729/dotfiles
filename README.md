@@ -70,6 +70,7 @@ dots ghostty     # terminal                dots push      # add + commit + push
 dots zed         # Zed settings            dots keymap    # Zed keybindings
 dots tasks       # Zed tasks               dots snippets  # Zed snippets
 dots ssh         # shared ssh defaults     dots hosts     # your servers (local)
+dots sshable     # this machine -> reachable over SSH, see below
 dots atuin / eza / steps / readme / help
 ```
 
@@ -145,6 +146,49 @@ agent first, hosts next, catch-all last.
 leaks your server list; `StrictHostKeyChecking accept-new` removes the
 first-connect prompt instead.
 
+## SSH into this machine
+
+`dots sshable <name>` makes the current machine reachable over SSH from your
+other devices, inside the same network or from anywhere, without opening a
+port on any router. macOS, and Linux with apt, dnf, pacman, zypper or apk,
+on systemd or OpenRC.
+
+```sh
+dots sshable workstation                         # this machine as "workstation"
+dots sshable workstation --save                  # also add it to this machine's 10-servers.conf
+dots sshable workstation --key "ssh-ed25519 AAAA… phone"   # authorize an extra key, repeatable
+```
+
+It is not an install step: it needs sudo, and it opens a network service, so
+`./install.sh --all` never runs it. Safe to re-run. In order, it:
+
+1. Adds the Bitwarden agent's public keys, and any `--key`, to
+   `~/.ssh/authorized_keys`. With no key at all it stops here, because the next
+   step would lock everyone out.
+2. Writes `/etc/ssh/sshd_config.d/01-dotfiles.conf`: no passwords, no root
+   login, only your user. `sshd -t` checks it and a rejected file is removed.
+3. Turns sshd on (Remote Login on macOS) and checks that port 22 listens.
+4. macOS only: no sleep on the charger, wake for network access, restart after
+   a power cut.
+5. Installs Tailscale, waits for you to sign in, and names the machine `<name>`
+   on your tailnet.
+
+At the end it prints the `Host` blocks to add everywhere else: `<name>` over
+Tailscale, and `<name>-lan` over mDNS for the same network (macOS always,
+Linux only when avahi runs). It never touches the Bitwarden note itself:
+`dots hosts`, paste, `dots backup`, then `dots restore` on the other machines.
+
+To connect, a device needs Tailscale signed in to the same account and your
+Bitwarden key, then `ssh <name>`. A phone app such as Termius or Blink has its
+own key: pass it with `--key`.
+
+**FileVault:** after a reboot, SSH may not answer until someone logs in at the
+screen. Test one restart before relying on it.
+
+**Undo:** delete `/etc/ssh/sshd_config.d/01-dotfiles.conf`, turn off Remote
+Login (macOS) or `sudo systemctl disable --now ssh` (Linux), and log out of
+Tailscale.
+
 ## Layout
 
 ```
@@ -165,6 +209,7 @@ lib/backup.sh           private files to and from Bitwarden, see `dots backup`
 lib/scan.awk            the secret and PII patterns, shared by hook and audit
 lib/servers.sh          fleet health across 10-servers.conf
 lib/deploy.sh           copies remote/ onto a server
+lib/sshable.sh          makes this machine reachable over SSH, see `dots sshable`
 lib/adopt.sh            adds stray brews into the Brewfile
 remote/                 minimal server profile: inputrc, tmux, vim, aliases
 bootstrap.sh            clone plus install, for a machine with nothing on it

@@ -163,6 +163,7 @@ dots() {
                          && print -r -- "history clean" ;;
     servers|fleet)     "$repo/lib/servers.sh" ;;
     deploy)            "$repo/lib/deploy.sh" "$@" ;;
+    sshable)           "$repo/lib/sshable.sh" "$@" ;;
     adopt)             "$repo/lib/adopt.sh" ;;
     restore)           "$repo/lib/backup.sh" pull ;;
     vault)             "$repo/lib/backup.sh" status ;;
@@ -191,6 +192,7 @@ dots() {
   vault       what is backed up       restore     Bitwarden -> private files
   audit       scan git history        adopt       add stray brews to Brewfile
   servers     fleet health            deploy      server profile -> a host
+  sshable     this machine -> reachable over SSH + Tailscale
   claude      marketplaces/plugins    log         last install log
   starship    prompt                  status      git status
   ghostty     terminal                diff        git diff
@@ -225,7 +227,7 @@ _dots() {
           starship prompt ghostty term atuin eza zed editor keymap tasks \
           snippets ssh hosts steps readme \
           install run link lint doctor check bench backup restore vault \
-          audit servers fleet deploy adopt \
+          audit servers fleet deploy sshable adopt \
           log status st diff pull sync push help
 }
 compdef _dots dots 2>/dev/null
