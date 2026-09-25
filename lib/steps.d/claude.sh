@@ -4,7 +4,6 @@ register claude "Claude Code           (marketplaces, plugins, skills)"
 step_claude() {
   task "Claude Code" _claude_cli
   has claude || { ui_warn "claude not on PATH, skipping plugins and skills"; return 0; }
-  task "claude-auto-retry" _claude_auto_retry
 
   task "~/.claude/CLAUDE.md" ensure_link "$DOTFILES/claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
 
@@ -41,15 +40,6 @@ _claude_cli() {
   fi
   curl -fsSL https://claude.ai/install.sh | bash
   export PATH="$HOME/.local/bin:$PATH"
-}
-
-_claude_auto_retry() {
-  if has claude-auto-retry; then
-    task_skip "already installed"
-    return 0
-  fi
-  has npm || { task_skip "npm not on PATH"; return 0; }
-  npm install -g --prefix "$HOME/.local" claude-auto-retry </dev/null
 }
 
 # Third-party skills come from their own repos via the skills CLI, so updates are

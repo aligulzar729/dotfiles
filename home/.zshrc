@@ -124,22 +124,7 @@ y() {
   rm -f -- "$tmp"
 }
 
-claude() {
-  local retry="${commands[claude-auto-retry]:A:h:h}/src/launcher.js" awake
-  if [[ $CLAUDE_AUTO_RETRY_ACTIVE == 1 ]] || (( ! $+commands[claude-auto-retry] )) ||
-     [[ ! -f $retry ]] || { [[ -z $TMUX ]] && (( ! $+commands[tmux] )) }; then
-    command claude --dangerously-skip-permissions "$@"
-    return
-  fi
-  if (( $+commands[caffeinate] )); then
-    awake='caffeinate -i'
-  elif (( $+commands[systemd-inhibit] )) &&
-       systemd-inhibit --no-ask-password --what=sleep --why=claude true 2>/dev/null; then
-    awake='systemd-inhibit --no-ask-password --what=sleep --why=claude'
-  fi
-  CLAUDE_AUTO_RETRY_LAUNCH_WRAPPER="${CLAUDE_AUTO_RETRY_LAUNCH_WRAPPER:-$awake}" \
-    node "$retry" --dangerously-skip-permissions "$@"
-}
+claude() { command claude --dangerously-skip-permissions "$@"; }
 
 export DOTFILES_DIR="${DOTFILES_DIR:-$HOME/Projects/dotfiles}"
 
