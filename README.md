@@ -295,6 +295,11 @@ misbehave across the Windows mount and this repo is all symlinks.
   with `npx skills`, so `npx skills update` pulls upstream fixes instead of this
   repo carrying a stale copy. `impeccable` and `ui-ux-pro-max` are neither, they
   are plugins from their own repos, carried by `plugins.txt`.
+- `job-hunt` comes without its `references/`. Those files hold my contact
+  details, salary floors and strategy, and this repo is public, so only
+  `PROFILE.example.md` is tracked. Mine sit in Google Drive under
+  `Jobs/skill-references` and are symlinked into the skill. On a new machine,
+  link them the same way, or copy the example to `PROFILE.md` and fill it in.
 - Zed's config is symlinked file by file, so changing settings in the Zed UI
   edits the repo. If an update ever replaces a symlink with a real file, run
   `dots link`.
