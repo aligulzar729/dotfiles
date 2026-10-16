@@ -73,7 +73,7 @@ alias pam='php artisan migrate'
 alias paoc='php artisan optimize:clear'
 alias pint='./vendor/bin/pint'
 alias pest='./vendor/bin/pest'
-alias patc='pest --parallel --bail --coverage --recreate-databases'
+alias patc='XDEBUG_MODE=coverage pest --parallel --bail --coverage --recreate-databases'
 alias patr='pest --bail --profile'
 
 alias nd='npm run dev'
