@@ -15,8 +15,7 @@
 # upstream; after that PR merges, drop the vendored copy and use:
 #   dmmulroy/anti-slop  install-anti-slop
 
-jakubkrehel/skills                    better-accessibility,better-colors,better-interface,better-layout,better-typography,better-ui,better-writing,break,explain-interface,interface-review,variant
-addyosmani/agent-skills               code-review-and-quality,code-simplification,debugging-and-error-recovery,git-workflow-and-versioning,security-and-hardening
+jakubkrehel/skills                    better-accessibility,better-colors,better-layout,better-writing,break,explain-interface,variant
 builderio/skills                      read-the-damn-docs
 peterfox/agent-skills                 phpstan-developer
 marcelorodrigo/agent-skills           phpstan-fixer

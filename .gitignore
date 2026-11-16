@@ -30,3 +30,6 @@ home/.local/bin/ani-cli
 claude/skills/job-hunt/references/*
 !claude/skills/job-hunt/references/PROFILE.example.md
 claude/skills/*/profile/
+
+# Python bytecode from the Claude hooks
+__pycache__/

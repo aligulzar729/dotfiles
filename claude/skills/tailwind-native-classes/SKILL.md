@@ -7,7 +7,7 @@ description: >-
   Use this skill WHENEVER writing, generating, editing, reviewing, or refactoring
   any Tailwind CSS markup or components (HTML, JSX/TSX, Vue, Blade, Svelte),
   converting CSS or design specs into Tailwind, or whenever a square-bracket
-  arbitrary value appears in a class/className attribute — even if the user never
+  arbitrary value appears in a class/className attribute, even if the user never
   says the words "arbitrary value" or "refactor". The v4 spacing scale (4px base)
   generates fractional steps like 0.75 and 1.25 on demand, so almost every px/rem
   bracket value has an EXACT native equivalent. Default to the native class; keep
@@ -17,8 +17,8 @@ description: >-
 # Tailwind v4: Native classes over arbitrary values
 
 In Tailwind CSS v4, most utilities are generated dynamically from a small set of
-theme tokens. The spacing scale in particular is driven by one variable —
-`--spacing` (default `0.25rem` = `4px`) — and the engine generates
+theme tokens. The spacing scale in particular is driven by one variable:
+`--spacing` (default `0.25rem` = `4px`), and the engine generates
 `calc(var(--spacing) * N)` for **any** number `N` you write, including fractions
 like `0.75`, `1.25`, or `2.5`. That means a value you would have written as an
 arbitrary bracket value in v3 (`h-[3px]`) almost always has an exact native form
@@ -31,12 +31,12 @@ LSP autocomplete and lint it, compresses better, and is the path the official
 **Core mandate:** when you emit or edit a class with a square-bracket length and
 an exact native token exists, write the native token instead. Only fall back to
 the bracket when there is genuinely no exact equivalent (see "When to KEEP the
-bracket" below) — never silently round to a *near* value, because that changes
+bracket" below). Never silently round to a *near* value, because that changes
 the design.
 
 ---
 
-## Rule 1 — The spacing-scale rule (covers the large majority of cases)
+## Rule 1: The spacing-scale rule (covers the large majority of cases)
 
 For any utility driven by `--spacing`, convert the bracket value to a multiplier:
 
@@ -79,13 +79,13 @@ Because px values are whole numbers, `px ÷ 4` always lands cleanly on a
 If you are unsure whether a utility is spacing-driven, check the table in
 `references/token-tables.md` before converting.
 
-## Rule 2 — Fixed-token utilities (look up, do NOT divide by 4)
+## Rule 2: Fixed-token utilities (look up, do NOT divide by 4)
 
 Some utilities map a length to a **named** token rather than a spacing multiple.
 Match the bracket value to the token with the **exact** same computed value. Do
 not approximate. The full lookup tables (font-size, border-radius, border-width,
 shadow/blur with v4 rename caveats, etc.) live in
-**`references/token-tables.md`** — read it whenever you hit one of these.
+**`references/token-tables.md`**. Read it whenever you hit one of these.
 
 Quick high-frequency ones:
 
@@ -97,7 +97,7 @@ Quick high-frequency ones:
 | `rounded-[12px]` | `rounded-xl`|
 | `border-[2px]`   | `border-2`  |
 
-## Rule 3 — Ratio / percentage utilities
+## Rule 3: Ratio / percentage utilities
 
 - **opacity:** the number is `0–100`. `opacity-[0.5]` → `opacity-50`,
   `opacity-[0.05]` → `opacity-5`. Color opacity modifiers too:
@@ -110,22 +110,22 @@ Quick high-frequency ones:
 
 ## When to KEEP the bracket (do not convert)
 
-Leave the arbitrary value in place — converting would be wrong or impossible —
+Leave the arbitrary value in place (converting would be wrong or impossible)
 when:
 
 - **No exact native token exists.** `border-[3px]` has no native step
   (border-width is `1 / 2 / 4 / 8`), so keep it. Never round 3px to `border-2`
   or `border-4`.
 - **Brand/exact colors not in the palette:** `bg-[#1b2a4a]`, `text-[#0af]`.
-- **CSS variables:** `bg-[var(--brand)]`, `w-[var(--sidebar)]` — though prefer
+- **CSS variables:** `bg-[var(--brand)]`, `w-[var(--sidebar)]`, though prefer
   the shorthand `bg-(--brand)` / `w-(--sidebar)` v4 offers for this.
 - **Functions and dynamic units:** `w-[calc(100%-2rem)]`, `min-h-[100dvh]`
-  (note: `min-h-dvh` exists — use it if it matches), `text-[clamp(1rem,2vw,2rem)]`.
+  (note: `min-h-dvh` exists. Use it if it matches), `text-[clamp(1rem,2vw,2rem)]`.
 - **Genuinely off-scale one-offs** the design requires that aren't a clean
   spacing multiple in disguise.
 
 The test is simple: **does an exact native equivalent exist?** If yes, use it.
-If no, the bracket is correct — keep it.
+If no, the bracket is correct. Keep it.
 
 ---
 
@@ -138,13 +138,13 @@ If no, the bracket is correct — keep it.
    `md:hover:p-[10px]` → `md:hover:p-2.5`, `dark:text-[14px]` → `dark:text-sm`.
 4. Do not touch brackets that should stay (the keep list above).
 5. If you converted several, you can note which were left as arbitrary and why
-   (e.g. "kept `border-[3px]` — no native border-width step").
+   (e.g. "kept `border-[3px]`: no native border-width step").
 
 ## Important v4 caveats
 
 - **This is v4-specific.** The dynamic spacing scale and fractional steps do not
   exist in v3. If the project is on v3, only the values present in its configured
-  scale are valid — say so rather than emitting `h-0.75` into a v3 codebase.
+  scale are valid. Say so rather than emitting `h-0.75` into a v3 codebase.
 - **Custom `--spacing`.** If the theme overrides `--spacing` or disables the
   default scale, the ÷4 math no longer holds. When you can see the theme config,
   use it; otherwise assume the 4px default and flag the assumption.

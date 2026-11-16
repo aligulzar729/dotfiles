@@ -17,7 +17,7 @@ project config wins.
 
 ---
 
-## 1. Spacing-scale utilities — apply Rule 1, not a lookup
+## 1. Spacing-scale utilities: apply Rule 1, not a lookup
 
 These are dynamic. Any `<util>-<number>` (including decimals) works:
 `m mx my mt mr mb ml ms me · p px py pt pr pb pl ps pe · w h size min-w min-h
@@ -28,7 +28,7 @@ end · space-x space-y · translate-x translate-y translate-z · scroll-m* scrol
 Convert by math: **px ÷ 4** or **rem ÷ 0.25**. Negative → minus before the
 utility (`-mt-2`).
 
-## 2. Font size — `text-*`
+## 2. Font size: `text-*`
 
 Match the exact px; line-height shown is the paired default but isn't needed for
 the size conversion.
@@ -51,7 +51,7 @@ the size conversion.
 
 No exact match (e.g. `text-[15px]`) → keep the bracket.
 
-## 3. Border radius — `rounded-*`
+## 3. Border radius: `rounded-*`
 
 **v4 values** (note the rename from v3):
 
@@ -66,7 +66,7 @@ No exact match (e.g. `text-[15px]`) → keep the bracket.
 | 16   | 1rem     | `rounded-2xl` | `rounded-2xl`  |
 | 24   | 1.5rem   | `rounded-3xl` | `rounded-3xl`  |
 | 32   | 2rem     | `rounded-4xl` | (new in v4)    |
-| ∞    | —        | `rounded-full`| `rounded-full` |
+| ∞    | -        | `rounded-full`| `rounded-full` |
 
 Side/corner variants follow the same scale: `rounded-t-* rounded-r-* rounded-b-*
 rounded-l-*`, logical `rounded-s-* rounded-e-*`, corners `rounded-tl-* …
@@ -75,9 +75,9 @@ rounded-bl-*`, logical corners `rounded-ss-* … rounded-ee-*`.
 The bare `rounded` still works for backward compatibility (= `rounded-sm` = 4px),
 but prefer the explicit named token.
 
-## 4. Border width — `border-*`
+## 4. Border width: `border-*`
 
-Fixed integer steps — **no ÷4 here**:
+Fixed integer steps, **no ÷4 here**:
 
 | px | class        |
 | -- | ------------ |
@@ -92,7 +92,7 @@ Per-side: `border-x-* border-y-* border-t-* border-r-* border-b-* border-l-*`
 `border-[3px]`, `border-[5px]`, `border-[6px]` etc. have **no** native step →
 keep the bracket. Do not round.
 
-## 5. Box shadow — `shadow-*`
+## 5. Box shadow: `shadow-*`
 
 **v4 renamed** the scale so every step has a name. Map v3→v4:
 
@@ -106,10 +106,10 @@ keep the bracket. Do not round.
 | `shadow-xl`   | `shadow-xl`     |
 | `shadow-2xl`  | `shadow-2xl`    |
 
-Arbitrary box-shadows are multi-part and rarely match a token exactly — usually
+Arbitrary box-shadows are multi-part and rarely match a token exactly. Usually
 keep `shadow-[...]` unless it's clearly one of the named presets.
 
-## 6. Blur — `blur-*`
+## 6. Blur: `blur-*`
 
 Same v4 rename pattern:
 
