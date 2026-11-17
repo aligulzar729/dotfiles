@@ -11,6 +11,10 @@
 # local-only: diagnose-crash
 # local-only: omarchy
 
+# Installed by hand in ~/.agents/skills and symlinked into ~/.claude/skills.
+# It is a personal choice for this machine, so this repo does not install it.
+# local-only: modern-web-guidance
+
 # install-anti-slop is vendored in claude/skills/ until the ESLint+Prettier port lands
 # upstream; after that PR merges, drop the vendored copy and use:
 #   dmmulroy/anti-slop  install-anti-slop
