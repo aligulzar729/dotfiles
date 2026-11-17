@@ -20,3 +20,4 @@ builderio/skills                      read-the-damn-docs
 peterfox/agent-skills                 phpstan-developer
 marcelorodrigo/agent-skills           phpstan-fixer
 wendelladriel/eloquent-query-classes  eloquent-query-classes
+nutlope/hallmark                      hallmark
