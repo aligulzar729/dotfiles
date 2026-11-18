@@ -53,8 +53,10 @@ Pick by what the user asked for.
 4. For each surviving posting, read the **full** ad, not the search snippet.
 5. Score it with the `job-application-agent` skill's CLI if available (`score --stdin`).
 6. **Write a Notion row only when the gate is `review` or `ask`** — the pipeline holds candidates,
-   not rejects. **EXCEPT: if PHP appears anywhere in the requirements, always write the row**, no
-   matter what else is listed beside it. Never tag a PHP role `wrong-stack`.
+   not rejects. **PHP is never a reason to drop a role; work rights, Japanese, pay and level still
+   can.** If PHP appears anywhere in the requirements, never drop it or tag it `wrong-stack` because
+   of other languages beside it. A PHP role that fails a hard gate (e.g. "must have Australian work
+   rights") still gets no row; it goes in the summary with its reason.
    **Verify the URL loads, the posting is still open and there is a working apply path** before
    writing any row, and re-verify before applying to an older row.
    **Archive the complete advertisement verbatim in the page body**, because postings get deleted and
