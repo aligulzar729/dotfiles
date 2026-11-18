@@ -1,0 +1,12 @@
+{
+  "name": "ali-stack",
+  "owner": { "name": "Ali Gulzar" },
+  "description": "Personal Claude Code plugins installed by these dotfiles.",
+  "plugins": [
+    {
+      "name": "ali-stack",
+      "source": "./ali-stack",
+      "description": "Session limits, subagent gate, handoff loading and task routing."
+    }
+  ]
+}

@@ -16,6 +16,13 @@ step_claude() {
     task "skill: $name" ensure_link "${skill%/}" "$HOME/.claude/skills/$name"
   done
 
+  mkdir -p "$HOME/.claude/hooks"
+  local hook
+  for hook in "$DOTFILES"/claude/hooks/*; do
+    [ -f "$hook" ] || continue
+    task "hook: $(basename "$hook")" ensure_link "$hook" "$HOME/.claude/hooks/$(basename "$hook")"
+  done
+
   local repo skill_list
   if has npx; then
     while read -r repo skill_list; do
@@ -64,6 +71,8 @@ _claude_skills() {
 
 _claude_market() {
   local market="$1" repo="$2" plugin_list="$3" plugin installed=0 failed=0 present
+  # A path that starts with ./ is a marketplace inside this repo.
+  case "$repo" in ./*) repo="$DOTFILES/${repo#./}" ;; esac
   claude plugin marketplace add "$repo" >/dev/null 2>&1 </dev/null || true
 
   [ "$plugin_list" = "-" ] && { task_note "registered, no plugins"; return 0; }

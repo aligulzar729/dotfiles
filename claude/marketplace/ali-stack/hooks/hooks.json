@@ -1,0 +1,25 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Agent|Task",
+        "hooks": [{ "type": "command", "command": "python3 -B \"${CLAUDE_PLUGIN_ROOT}/hooks/agent-gate.py\"", "timeout": 10 }]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [{ "type": "command", "command": "python3 -B \"${CLAUDE_PLUGIN_ROOT}/hooks/session-limit.py\"", "timeout": 10 }]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|clear",
+        "hooks": [{ "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/handoff-load.sh\"", "timeout": 10 }]
+      },
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [{ "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/route.sh\"", "timeout": 10 }]
+      }
+    ]
+  }
+}

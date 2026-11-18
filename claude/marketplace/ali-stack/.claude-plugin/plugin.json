@@ -1,0 +1,6 @@
+{
+  "name": "ali-stack",
+  "version": "1.0.0",
+  "description": "Session limits, subagent gate, handoff loading and task routing.",
+  "author": { "name": "Ali Gulzar" }
+}
