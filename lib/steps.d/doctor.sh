@@ -123,6 +123,7 @@ _dr_packages() {
   load_brew >/dev/null 2>&1 || { task_skip "no homebrew"; return 0; }
   local files="$DOTFILES/Brewfile" declared missing=0 extra=0 pkg
   is_macos && files="$files $DOTFILES/Brewfile.macos"
+  [ -f "$HOME/.Brewfile.local" ] && files="$files $HOME/.Brewfile.local"
 
   # shellcheck disable=SC2086  # files is a deliberate word-split list
   declared=" $(awk -F'"' '/^(brew|cask) /{print $2}' $files | sed 's|.*/||' | tr '\n' ' ') "
@@ -134,9 +135,10 @@ _dr_packages() {
   done
 
   # Requested packages only: dependencies are plumbing, not drift.
+  # Tap formulae come back as tap/name; declared holds bare names.
   for pkg in $(brew leaves --installed-on-request 2>/dev/null); do
     case "$declared" in
-      *" $pkg "*) ;;
+      *" ${pkg##*/} "*) ;;
       *) extra=$((extra + 1)); echo "installed but not in any Brewfile: $pkg" ;;
     esac
   done
@@ -185,16 +187,18 @@ _dr_claude_skills() {
     unset IFS
   done < "$DOTFILES/claude/skills.txt"
 
-  # Deliberately-local skills are declared by a comment, not a repo line.
-  declared="$declared $(sed -n 's/^# local-only:[[:space:]]*//p' "$DOTFILES/claude/skills.txt" | tr '\n' ' ')"
-
   for skill in $declared; do
     [ -e "$dir/$skill" ] || { missing=$((missing + 1)); echo "declared but not on disk: $skill"; }
   done
+
+  # Local-only skills exist on one machine, so they are allowed, never required.
+  # synced/ is where Claude Code keeps skills synced from claude.ai.
+  local allowed
+  allowed="$declared synced $(sed -n 's/^# local-only:[[:space:]]*//p' "$DOTFILES/claude/skills.txt" | tr '\n' ' ')"
   for name in "$dir"/*/; do
     [ -d "$name" ] || continue
     skill="$(basename "$name")"
-    case " $declared " in
+    case " $allowed " in
       *" $skill "*) ;;
       *) extra=$((extra + 1)); echo "on disk but declared nowhere: $skill" ;;
     esac

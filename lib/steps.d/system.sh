@@ -45,6 +45,10 @@ step_packages() {
     task "Trust taps" _trust_taps "$DOTFILES/Brewfile.macos"
     task "macOS casks" _brew_bundle "$DOTFILES/Brewfile.macos"
   fi
+  # Untracked, written by `dots adopt`: packages only this machine keeps.
+  if [ -f "$HOME/.Brewfile.local" ]; then
+    task "Local Brewfile" _brew_bundle "$HOME/.Brewfile.local"
+  fi
 }
 
 # ani-cli self-updates and has no brew formula, so fetch the latest rather than

@@ -15,13 +15,17 @@ load_brew >/dev/null 2>&1 || { ui_error "Homebrew not on PATH"; exit 1; }
 
 files="$DOTFILES/Brewfile"
 is_macos && files="$files $DOTFILES/Brewfile.macos"
+# Untracked: packages this machine keeps but other machines should not install.
+local_file="$HOME/.Brewfile.local"
+[ -f "$local_file" ] && files="$files $local_file"
 # shellcheck disable=SC2086  # deliberate word split
 declared=" $(awk -F'"' '/^(brew|cask) /{print $2}' $files | sed 's|.*/||' | tr '\n' ' ') "
 
 undeclared=""
+# Tap formulae come back as tap/name; declared holds bare names.
 for pkg in $(brew leaves --installed-on-request 2>/dev/null); do
   case "$declared" in
-    *" $pkg "*) ;;
+    *" ${pkg##*/} "*) ;;
     *) undeclared="$undeclared $pkg" ;;
   esac
 done
@@ -43,12 +47,13 @@ if [ "$UI_TTY" != 1 ]; then
 fi
 
 printf '\n'
-ui_info "y adds to Brewfile, n leaves it, q stops here."
+ui_info "y adds to the shared Brewfile, l to ~/.Brewfile.local (this machine only),"
+ui_info "n leaves it, q stops here."
 printf '\n'
 
-added=0
+added=0 added_local=0
 for pkg in $undeclared; do
-  printf '  %s? [y/N/q] ' "$pkg"
+  printf '  %s? [y/l/N/q] ' "$pkg"
   IFS= read -r reply </dev/tty || reply=n
   case "$reply" in
     [qQ]*) break ;;
@@ -56,12 +61,15 @@ for pkg in $undeclared; do
       printf 'brew "%s"\n' "$pkg" >> "$DOTFILES/Brewfile"
       added=$((added + 1))
       ;;
+    [lL]*)
+      printf 'brew "%s"\n' "$pkg" >> "$local_file"
+      added_local=$((added_local + 1))
+      ;;
   esac
 done
 
 printf '\n'
-if [ "$added" -gt 0 ]; then
-  ui_info "added $added package(s) to Brewfile. Review the diff before committing."
-else
-  ui_info "nothing added"
-fi
+[ "$added" -gt 0 ] && ui_info "added $added package(s) to Brewfile. Review the diff before committing."
+[ "$added_local" -gt 0 ] && ui_info "added $added_local package(s) to $local_file"
+[ $((added + added_local)) -eq 0 ] && ui_info "nothing added"
+exit 0

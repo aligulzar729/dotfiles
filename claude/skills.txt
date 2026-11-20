@@ -15,6 +15,15 @@
 # It is a personal choice for this machine, so this repo does not install it.
 # local-only: modern-web-guidance
 
+# Installed by hand with `npx skills` on one machine for project work. Allowed
+# where present, never required, so other machines do not report them missing.
+# local-only: ask-sonner
+# local-only: cloudflare
+# local-only: emil-design-eng
+# local-only: improve-animations
+# local-only: stripe-best-practices
+# local-only: turnstile-spin
+
 # install-anti-slop is vendored in claude/skills/ until the ESLint+Prettier port lands
 # upstream; after that PR merges, drop the vendored copy and use:
 #   dmmulroy/anti-slop  install-anti-slop
