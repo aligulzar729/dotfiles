@@ -163,6 +163,8 @@ it('places an order for a valid request', function () {
 
 **Rule:** test what the caller observes (status, payload, DB state, events) via a real request. Mock only true external boundaries (third-party HTTP, payment gateways), never the code under test.
 
+For a vendor wrapper, fake the HTTP layer with `Http::fake()` and let the real wrapper run, so the test covers its error mapping. Write one test for each vendor error the wrapper maps: fake that response, then assert the domain exception (or the user-facing result) and that nothing was written. If the code picks a mock driver by checking `app()->environment()`, the tests never exercise the real driver; flag it instead of relying on it.
+
 ## A2. The merge-vs-split decision tree
 
 One question: **does this case exercise the same behaviour with different data, or a different outcome?**

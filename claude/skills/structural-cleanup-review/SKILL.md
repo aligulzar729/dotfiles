@@ -44,6 +44,17 @@ Scan the changed code for the symptoms of accidental complexity:
 - Awkward data flow: the same cluster of parameters threaded through many functions, or return shapes reconstructed at each hop.
 - Fragile ordering: correctness depends on calling things in a specific sequence that nothing enforces.
 - Duplicated transformations: the same reshaping, normalization, or computed field derived in multiple places.
+- Leaked vendor errors: callers catch a third-party exception type (a Guzzle `RequestException`, an SDK error) or check raw HTTP status codes themselves. See the vendor boundary below.
+
+### Anti-patterns that call for deletion, not a new structure
+
+Some smells are fixed by removing code. When you see one of these, the cleanup is to finish or delete, never to add a layer on top:
+
+- A half-finished move: the same class exists in two places, such as `app/User.php` and `app/Models/User.php`. Pick the one callers should use, point every caller at it, and delete the other.
+- A versioned duplicate: `BatchController` next to `BatchControllerNew`, or `sendV2()` next to `send()`. Find which one the routes and callers use, move any remaining callers, and delete the dead one. The suffix itself shows that a migration was started and never finished.
+- A layer with one implementation: a repository, service or interface that forwards each call to Eloquent or to a single class and hides nothing. Inline it into its callers.
+- A helpers dumping ground: a `Helpers/` or `Utils/` folder of unrelated `*Helper` classes. Move each function next to the only code that calls it, or onto the model it reads. Do not reorganize the folder.
+- An environment check in production code: `if (app()->environment('testing'))` choosing between real and fake behaviour. Replace it with a container binding or a test fake, so the code that ships is the code that runs under test.
 
 ## Candidate structures and what each earns
 
@@ -58,6 +69,8 @@ Match the symptom to the structure. The question behind every candidate is wheth
 - Reducer or command/event model. Replaces ad hoc state mutations scattered across handlers where it is hard to see how state changes or to reproduce a sequence. Earns: transitions become named, centralized, and testable, and can be replayed or audited; ownership of who may change state is explicit. Caution: this is heavier machinery, justified when mutations are many, interleaved, or need history, undo, or audit. It is overkill for a couple of setters.
 
 - Module boundary. Gathers behavior, ownership, and invariants currently smeared across files (the same validation, the same computed field, the same "keep these two things in sync"). Earns: one owner for a rule or invariant, a narrow public surface, and callers that stop duplicating logic. Caution: a boundary must hide something. Do not create one that is a passthrough.
+
+- Vendor boundary. Wraps a third-party API (Instagram, Stripe, a shipping carrier) in one class that owns every call to it. That class does three things: it calls the vendor client, it catches the vendor's exceptions and rethrows them as domain exceptions that name what happened (`AccessSuspended`, `TwoFactorRequired`, `MediaNotFound`), and it logs each call with the local record it belongs to. Callers then handle domain cases and never import a vendor exception or read a status code. Earns: one place that maps vendor errors, so a new vendor error is one edit; callers whose branches describe the domain; and a single seam to fake in tests with `Http::fake()` or a container binding. Caution: if the app makes one call to the vendor from one place, a separate class is a passthrough, so keep the call inline and map its errors there. Never choose the fake inside the wrapper by checking the environment.
 
 - Queue, cache, index, graph or tree, or normalized collection. Matches the data structure to the access pattern the code already has: repeated linear scans to find by id (index or map), recomputing the same expensive result (cache), order-sensitive processing (queue), parent and child or dependency traversal faked with nested loops (tree or graph), the same entity duplicated across several arrays that must stay consistent (a normalized collection keyed by id). Earns: direct or constant-time access, one source of truth for consistency, and traversal or ordering expressed directly. Caution: for a handful of items, a linear scan is simpler and fast enough. Do not index ten rows.
 
