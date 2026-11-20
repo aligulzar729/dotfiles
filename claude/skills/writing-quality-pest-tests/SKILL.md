@@ -54,6 +54,35 @@ it('rejects invalid registration input', function (array $payload, string $field
 
 Reusable datasets go in `tests/Datasets/` via `dataset('name', [...])`. More: **Appendix A**.
 
+### Property and differential tests
+
+Example datasets test the cases you thought of. When the code has a rule that must hold for every input, state the rule and feed it generated inputs:
+
+- **Round-trip**: `decode(encode($x)) === $x` (casts, serializers, money formatting, slugs that parse back).
+- **Invariant**: a balance never goes negative, a total equals the sum of its lines, a tenant never sees another tenant's rows.
+- **Idempotency**: running a normalizer, a migration backfill, a webhook handler or a retried job twice gives the same result as running it once.
+- **Equivalence**: an optimized query or cache returns the same result as the naive version.
+
+Pest has no built-in property testing. Use a generated dataset with a **fixed seed**, so a failure reproduces and the test never flakes:
+
+```php
+dataset('random amounts', function () {
+    mt_srand(1234);
+    foreach (range(1, 200) as $i) {
+        yield "case {$i}" => [mt_rand(-10_000_00, 10_000_00)];
+    }
+});
+
+it('round-trips money through the cast', function (int $cents) {
+    $order = Order::factory()->create(['total' => Money::ofMinor($cents, 'USD')]);
+    expect($order->fresh()->total->getMinorAmount()->toInt())->toBe($cents);
+})->with('random amounts');
+```
+
+Add edge values by hand as well: 0, negative values, the maximum value, empty strings and multibyte strings. When a generated case fails, copy it into a named dataset entry so it stays as a regression test.
+
+**Differential test (for rewrites)**: keep the old implementation, run old and new on the same generated inputs and compare the output. Normalize differences that don't matter (ordering, whitespace, timestamps). List the differences you intend in the test, so any other difference fails.
+
 ## 5. Chain related expectations
 
 Chain by subject: one subject, one chain; new subject, `and()`. Don't stack separate `expect()` statements about one object.

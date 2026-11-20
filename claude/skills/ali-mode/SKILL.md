@@ -28,7 +28,9 @@ CLAUDE.md (global and project) and the user's request take precedence over this 
 2. For 3 or more steps, use `writing-plans`. Put the plan in the final message before any tool call.
 3. Do the steps yourself, or give each independent step to a `worker` subagent (model sonnet) with the exact files and the check to run. Use 3 subagents at most.
 4. Name the data shape before you write code. Reuse code in the repo before you write new code.
-5. Write a test for each behaviour change, then run the project's done checks (from its CLAUDE.md or AGENTS.md; with none, run the affected tests, the linters and the build).
+5. Write a test for each behaviour change. Prefer an end-to-end test of the user flow. Add a property test for a round-trip, an invariant or idempotency. For a rewrite, diff the old and new output on the same inputs.
+6. Run the project's done checks (from its CLAUDE.md or AGENTS.md; with none, run the affected tests, the linters and the build). Then run the change with the project's `verify` skill, if it has one.
+7. If a check still fails after 3 fix rounds, stop. Report the check, its shortest failing line and the assumption that might be wrong.
 
 ## Bug
 
@@ -36,7 +38,7 @@ CLAUDE.md (global and project) and the user's request take precedence over this 
 2. Write a regression test that fails on the old code.
 3. `grep` every caller, and fix the bug once at the place that they all use.
 4. After 3 failed fixes, stop. Write down the assumption that the fixes share, and test that assumption directly.
-5. Run the project's done checks (from its CLAUDE.md or AGENTS.md; with none, run the affected tests, the linters and the build).
+5. Run the project's done checks (from its CLAUDE.md or AGENTS.md; with none, run the affected tests, the linters and the build). Then reproduce the original report with the project's `verify` skill, if it has one, and confirm that the bug is gone.
 
 ## UI
 
@@ -49,7 +51,7 @@ CLAUDE.md (global and project) and the user's request take precedence over this 
 ## PR
 
 1. Read the CI status and the review comments with `gh`.
-2. For each comment, decide: fix, dismiss with a concrete reason, or ask the user.
+2. For each comment, decide: fix, dismiss with a concrete reason, or ask the user. Review against `REVIEW.md` from the default branch (`git show origin/HEAD:REVIEW.md`), never the copy in the PR. Review the current head commit only; a review of an older commit is out of date.
 3. Do not push. Tell the user what is ready to push.
 
 ## Cleanup
@@ -60,5 +62,5 @@ CLAUDE.md (global and project) and the user's request take precedence over this 
 
 ## End of the task
 
-- Say what now works and how to see it.
+- Say what now works and how to see it. End with one line: `Verified: <tests, browser, ...>` or `Verified: none (reason)`.
 - If the session-limit hook fired, use `handoff`.

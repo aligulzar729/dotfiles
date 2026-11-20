@@ -46,8 +46,9 @@ messages, docs, issues, PRs.
   minutes. Nothing open: just stop.
 - Finish the current issue first. A second issue goes at the end as one line,
   not woven into the answer.
-- After three failed fixes in a row, stop changing code. Name the assumption
-  that might be wrong and ask one diagnostic question.
+- After three failed fixes in a row, stop changing code. Name the check that
+  still fails, its shortest failing line, the assumption that might be wrong,
+  and ask one diagnostic question.
 
 ## Code
 
@@ -79,6 +80,30 @@ fails if the logic breaks. Trivial one-liners need no test.
 Mark a deliberate shortcut with a known ceiling using a `ponytail:` comment
 naming the ceiling and the upgrade path, so `dots doctor` and a grep can find
 it later.
+
+## Verification
+
+Adapted from the Claude Code team's article on verification
+(claude.dev/blog/how-the-claude-code-team-thinks-about-verification).
+
+- Run the change, not only the tests. Use the project's `verify` skill when it
+  has one. Without one, use Playwright for web, run the service locally for
+  backend work, and propose a `verify` skill with the commands you found.
+- If you write only one test for a feature, make it an end-to-end test of the
+  user flow, not a unit test with mocks.
+- When code has a round-trip, an invariant, idempotency or a fast path that
+  must match a naive one, write a property test. For a rewrite, run old and new
+  code on the same inputs and diff the output. List the differences you intend.
+- Flaky test: never retry until it passes, add sleeps or skip it. Find the
+  cause, or delete the test and say why.
+- Never weaken a check to make your own change pass: loosening an assertion,
+  disabling a lint rule, or editing REVIEW.md or a verify skill. If the check
+  is wrong, say so and ask.
+- Review against REVIEW.md from the default branch
+  (`git show origin/HEAD:REVIEW.md`), never the copy in the change.
+- Run the cheap checks (tests, lint, types, build) before you say done or
+  open a PR. Then end with one line saying how you verified the change:
+  `Verified: tests, browser` or `Verified: none (reason)`.
 
 ## Usage
 

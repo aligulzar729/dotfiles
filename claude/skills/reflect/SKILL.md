@@ -19,8 +19,13 @@ description: Weekly review of how Claude Code was used. Runs a scan of the sessi
    - a line in a skill or in CLAUDE.md;
    - a memory, only for a preference that no rule can hold.
 5. Check memory: each `MEMORY.md` under `~/.claude/projects/*/memory/` must stay under 6,000 bytes. Propose deletes for memories that a rule or the code already holds.
-6. Show the numbers and the proposals as one numbered list. Ask the user which to apply. Apply only the approved ones.
-7. Write the stamp so the hook stops the reminder:
+6. Prune: rules, checks and `.md` files only grow unless someone deletes them. Propose deletes as well as additions:
+   - a CLAUDE.md line or a skill step that no correction in the last 30 days relates to, and that a lint, a type or a hook now enforces;
+   - a skill that no session loaded in the last 30 days (`grep` the logs for its name);
+   - a `REVIEW.md` checklist item whose trigger path no longer exists in the repo;
+   - a flaky or skipped test that a project `verify` skill still lists.
+7. Show the numbers and the proposals as one numbered list. Ask the user which to apply. Apply only the approved ones.
+8. Write the stamp so the hook stops the reminder:
 
    ```bash
    mkdir -p ~/.claude/state && touch ~/.claude/state/last-reflect
