@@ -32,3 +32,5 @@ brew "mpv"           # player
 brew "botan"         # crypto lib ani-cli uses
 
 brew "mailpit"
+brew "redis"
+brew "pipx"

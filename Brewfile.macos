@@ -4,6 +4,9 @@
 # on Linux use: npm install -g @bitwarden/cli. Used by `dots backup`.
 brew "bitwarden-cli"
 
+# Cleans caches, logs and leftovers of uninstalled apps. macOS only.
+brew "mole"
+
 tap "pol-rivero/tap"
 
 cask "ghostty"
