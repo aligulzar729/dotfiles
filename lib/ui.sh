@@ -57,6 +57,9 @@ ui_spin_start() {
     done
   ) &
   _ui_spin_pid=$!
+  # Without this, bash reports "Terminated: 15" for the killed spinner on the
+  # next command, which lands in the task's log.
+  disown "$_ui_spin_pid" 2>/dev/null || true
 }
 
 ui_spin_stop() {
