@@ -9,6 +9,7 @@ step_doctor() {
   task "Homebrew"          _dr_brew
   task "node + npx"        _dr_node
   task "Symlinks"          _dr_links
+  task "~/.zshrc"          _dr_zshrc
   task "Login shell"       _dr_shell
   task "Nerd Font"         _dr_font
   task "SSH config"        _dr_ssh_config
@@ -46,13 +47,30 @@ _dr_links() {
     elif [ ! -e "$dst" ]; then
       broken=$((broken + 1)); echo "dangling: $dst"
     fi
-  done < <(find "$DOTFILES/home" -type f ! -name '*.example' | sort)
+  done < <(find "$DOTFILES/home" -type f ! -name '*.example' ! -path "$DOTFILES/home/.zshrc" | sort)
 
   if [ $((broken + wrong + missing)) -gt 0 ]; then
     task_note "$missing missing, $wrong not links, $broken dangling: run ./install.sh link"
     return 1
   fi
   task_skip "all linked"
+}
+
+# A machine path in the tracked .zshrc means an installer wrote into the repo,
+# usually through an old ~/.zshrc symlink.
+_dr_zshrc() {
+  local hits
+  if [ -L "$HOME/.zshrc" ] || ! grep -qF 'home/.zshrc' "$HOME/.zshrc" 2>/dev/null; then
+    task_note "not a stub sourcing the repo .zshrc, run ./install.sh link"
+    return 1
+  fi
+  hits="$(grep -nE '/(Users|home)/[A-Za-z]' "$DOTFILES/home/.zshrc" | grep -v linuxbrew || true)"
+  if [ -n "$hits" ]; then
+    echo "$hits"
+    task_note "machine paths in home/.zshrc, move them to ~/.zshrc"
+    return 1
+  fi
+  task_skip "stub, no machine paths in the repo copy"
 }
 
 _dr_shell() {

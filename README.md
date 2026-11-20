@@ -27,9 +27,9 @@ That opens a picker. Take everything on a new box, one step on an old one.
 ## How it works
 
 `home/` mirrors your home directory and every file in it gets symlinked into
-place. `~/.zshrc` is a link to `home/.zshrc`, so editing your shell config
-edits the repo. Commit, push, pull on the other machine, done. No sync logic,
-no copying.
+place. The exception is `~/.zshrc`: a small untracked file that sources
+`home/.zshrc`, so editing your shell config with `dots zsh` edits the repo.
+Commit, push, pull on the other machine, done. No sync logic, no copying.
 
 Tools are installed from upstream: Homebrew formulae, the oh-my-zsh installer,
 each plugin's git repo, Zed's own install script. Nothing is copied between
@@ -306,9 +306,9 @@ misbehave across the Windows mount and this repo is all symlinks.
 - Zed's `prompts/` is not versioned. It is an LMDB database with a lock file,
   git cannot merge it.
 - `$EDITOR` is `zed --wait` when Zed is on PATH. Override in `~/.zshrc.local`.
-- Installers that append to `~/.zshrc` (Laravel Herd does this on every update)
-  write into the tracked file, because `~/.zshrc` is a symlink into this repo.
-  Move what they added to `~/.zshrc.local` and `git checkout home/.zshrc`.
+- Installers that append to `~/.zshrc` (Herd on every update, `flock install`)
+  write into the untracked stub, never the repo, so they need no cleanup.
+  `dots doctor` flags machine paths that still reach `home/.zshrc`.
 - Linux gets Ghostty from the distro repo where one exists (Arch, Fedora),
   otherwise the installer prints the download URL.
 - Needs bash 3.2, so it runs on stock macOS.

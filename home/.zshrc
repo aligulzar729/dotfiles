@@ -94,7 +94,7 @@ alias occ='zed ~/.config/opencode/opencode.json'
 # (reloadcli) can redefine them as functions instead of erroring.
 unalias rmlogs rmlp zshconfig 2>/dev/null
 
-zshconfig() { ${=EDITOR:-vi} ~/.zshrc }
+zshconfig() { ${=EDITOR:-vi} "$DOTFILES_DIR/home/.zshrc" }
 
 rmlogs() {
   local log_path="${1:-storage/logs/laravel.log}"
@@ -246,19 +246,3 @@ export EZA_CONFIG_DIR="$HOME/.config/eza"
 
 # zoxide last, it warns if anything re-runs compinit after its init.
 command -v zoxide >/dev/null && eval "$(zoxide init zsh)" && alias cd='z'
-
-
-# Herd injected PHP 8.4 configuration.
-export HERD_PHP_84_INI_SCAN_DIR="/Users/ali/Library/Application Support/Herd/config/php/84"
-
-
-# Herd injected PHP 8.5 configuration.
-export HERD_PHP_85_INI_SCAN_DIR="/Users/ali/Library/Application Support/Herd/config/php/85"
-
-
-# Herd injected PHP 8.3 configuration.
-export HERD_PHP_83_INI_SCAN_DIR="/Users/ali/Library/Application Support/Herd/config/php/83"
-
-
-# Herd injected PHP binary.
-export PATH="/Users/ali/Library/Application Support/Herd/bin":$PATH
