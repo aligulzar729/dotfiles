@@ -11,12 +11,9 @@
 #   security add-generic-password -a "$USER" -s ANTHROPIC_API_KEY -w
 # export ANTHROPIC_API_KEY="$(security find-generic-password -a "$USER" -s ANTHROPIC_API_KEY -w)"
 
-# Laravel Herd, macOS only. NVM_DIR is read by the omz nvm plugin, which
-# home/.zshrc loads lazily, so setting it here costs nothing at startup.
-# export HERD_PHP_84_INI_SCAN_DIR="$HOME/Library/Application Support/Herd/config/php/84/"
-# export NVM_DIR="$HOME/Library/Application Support/Herd/config/nvm"
-# export PATH="$HOME/Library/Application Support/Herd/bin/:$PATH"
-# source "/Applications/Herd.app/Contents/Resources/config/shell/zshrc.zsh"
+# Flock (PHP, Node, composer, npm globals). `flock install` appends this to
+# ~/.zshrc; keep it here instead.
+# export PATH="$HOME/Library/Application Support/Flock/bin:$HOME/Library/Application Support/Flock/node-global/current/bin:$PATH"
 
 # Extra PATH entries, one line each.
 # export PATH="$HOME/.cargo/bin:$HOME/.bun/bin:$HOME/go/bin:$PATH"

@@ -19,10 +19,6 @@ command -v zed >/dev/null && export EDITOR="zed --wait"
 
 export ZSH="$HOME/.oh-my-zsh"
 
-# Must be set before oh-my-zsh.sh. Eager loading cost 479ms of a 730ms startup
-# (zprof); lazy defers it until nvm/node/npm/npx/pnpm/yarn/corepack is run.
-zstyle ':omz:plugins:nvm' lazy yes
-
 plugins=(
   git gh
   laravel artisan composer
