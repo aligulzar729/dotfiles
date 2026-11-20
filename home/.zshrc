@@ -126,6 +126,39 @@ claude() { command claude --dangerously-skip-permissions "$@"; }
 
 export DOTFILES_DIR="${DOTFILES_DIR:-$HOME/Projects/dotfiles}"
 
+# Records a hand `brew install` that no Brewfile covers in ~/.Brewfile.local,
+# and drops it again on uninstall, so a rebuild keeps it and `dots doctor`
+# never reports it as drift. `dots adopt` moves one into the shared Brewfile.
+brew() {
+  command brew "$@" || return
+  local sub="$1" local_file="$HOME/.Brewfile.local" pkg name kind
+  local -a files=("$DOTFILES_DIR"/Brewfile(N) "$DOTFILES_DIR"/Brewfile.macos(N) "$local_file"(N))
+  (( $# )) && shift
+  case "$sub" in
+    install|reinstall)
+      for pkg in "$@"; do
+        [[ $pkg == -* ]] && continue
+        name="${pkg##*/}"
+        # Brewfiles name taps in full (tap/name); compare the bare name.
+        (( ${#files} )) && awk -F'"' -v n="$name" \
+          '/^(brew|cask) /{ s=$2; sub(/.*\//, "", s); if (s == n) f=1 } END { exit !f }' \
+          "${files[@]}" && continue
+        kind=brew
+        command brew list --cask "$name" >/dev/null 2>&1 && kind=cask
+        print "$kind \"$pkg\"" >> "$local_file"
+        print -u2 "brew: recorded $pkg in ~/.Brewfile.local (dots adopt shares it)"
+      done ;;
+    uninstall|remove|rm)
+      [ -f "$local_file" ] || return 0
+      for pkg in "$@"; do
+        [[ $pkg == -* ]] && continue
+        awk -F'"' -v n="${pkg##*/}" \
+          '{ s=$2; sub(/.*\//, "", s); if (!(/^(brew|cask) / && s == n)) print }' \
+          "$local_file" > "$local_file.tmp" && mv "$local_file.tmp" "$local_file"
+      done ;;
+  esac
+}
+
 dots() {
   local repo="$DOTFILES_DIR" cmd="${1:-cd}"
   # zsh does not word-split unquoted scalars, so a scalar ed="zed --wait" would

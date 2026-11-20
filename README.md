@@ -252,9 +252,13 @@ Every step checks before it acts, so a second run reports `unchanged` instead
 of redoing work. A real file in the way of a symlink is moved to `<name>.bak`,
 never deleted. Secrets live in `~/.zshrc.local`, which is created from the
 example on first run and gitignored. Packages only one machine keeps go in
-`~/.Brewfile.local`, which is never committed: `dots adopt` writes there when
-you answer `l`, and the packages step and `dots doctor` read it when it
-exists. One failing task does not abort the run;
+`~/.Brewfile.local`, which is never committed. The `brew` shell function
+records every `brew install` that no Brewfile covers there and removes it on
+`brew uninstall`, so hand installs survive a rebuild without any cleanup.
+`dots adopt` moves a package into the shared Brewfile, and the packages step
+and `dots doctor` read the local file when it exists. Third-party skills
+dropped from `claude/skills.txt` are removed by the next `dots install
+claude`; only skills that step installed are touched. One failing task does not abort the run;
 failures are counted and the log path is printed at the end.
 
 ## Windows

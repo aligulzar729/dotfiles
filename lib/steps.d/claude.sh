@@ -29,6 +29,7 @@ step_claude() {
       case "$repo" in ''|\#*) continue ;; esac
       task "skills: $repo" _claude_skills "$repo" "$skill_list"
     done < "$DOTFILES/claude/skills.txt"
+    task "skills: prune removed" _claude_prune_skills
   else
     ui_warn "npx not on PATH, skipping third-party skills"
   fi
@@ -67,6 +68,47 @@ _claude_skills() {
   # that stdin. Without </dev/null it eats the rest of the file, leaving only
   # the first repo installed.
   npx -y skills@latest add "$repo" -g -a claude-code "${args[@]}" -y </dev/null
+}
+
+# Third-party skill names skills.txt lists, one per line. A "*" entry has no
+# names to list, so its skills are never pruned.
+_claude_listed_skills() {
+  local repo list skill
+  while read -r repo list; do
+    case "$repo" in ''|\#*) continue ;; esac
+    [ "$list" = "*" ] && continue
+    local IFS=','
+    for skill in $list; do printf '%s\n' "$skill"; done
+    unset IFS
+  done < "$DOTFILES/claude/skills.txt"
+}
+
+# The skills CLI only adds, so a skill dropped from skills.txt stayed on every
+# machine that had it. The manifest records what this step installed, and only
+# those names are removed: skills installed by hand are never touched.
+_claude_prune_skills() {
+  local manifest="$HOME/.claude/state/dotfiles-skills" listed stale skill removed=0
+  listed="$(_claude_listed_skills | sort -u)"
+  mkdir -p "$(dirname "$manifest")"
+
+  if [ -f "$manifest" ]; then
+    stale="$(comm -23 <(sort -u "$manifest") <(printf '%s\n' "$listed"))"
+    for skill in $stale; do
+      # Moved into claude/skills/ or kept as local-only: still wanted here.
+      [ -e "$DOTFILES/claude/skills/$skill" ] && continue
+      grep -qx "# local-only: $skill" "$DOTFILES/claude/skills.txt" && continue
+      npx -y skills@latest remove -g -s "$skill" -y </dev/null || echo "could not remove $skill"
+      rm -rf "${HOME:?}/.claude/skills/$skill"
+      removed=$((removed + 1))
+    done
+  fi
+
+  printf '%s\n' "$listed" > "$manifest"
+  if [ "$removed" -gt 0 ]; then
+    task_note "removed $removed skill(s) no longer in skills.txt"
+  else
+    task_skip "nothing to remove"
+  fi
 }
 
 _claude_market() {
